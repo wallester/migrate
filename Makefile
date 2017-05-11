@@ -6,7 +6,7 @@ fmt:
 	@go fmt ./...
 
 lint:
-	@gometalinter ./...
+	@gometalinter ./... --vendor
 
 test:
-	@go test ./...
+	@go list ./... | grep -v vendor | xargs go test
