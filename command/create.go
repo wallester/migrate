@@ -19,21 +19,12 @@ func Create(c *cli.Context) error {
 		return errors.New("please specify migration name")
 	}
 
-	name = strings.Replace(name, " ", "_", -1)
-
-	path := ""
-	if c.IsSet(flag.FlagPath) {
-		path = c.String(flag.FlagPath)
-	}
-
-	if c.GlobalIsSet(flag.FlagPath) {
-		path = c.GlobalString(flag.FlagPath)
-	}
-
+	path := flag.Get(c, flag.FlagPath)
 	if path == "" {
-		return errors.New("please specify " + flag.Path.Name)
+		return flag.NewRequiredFlagError(flag.FlagPath)
 	}
 
+	name = strings.Replace(name, " ", "_", -1)
 	version := time.Now().Unix()
 
 	up := fmt.Sprintf("%d_%s.up.sql", version, name)
