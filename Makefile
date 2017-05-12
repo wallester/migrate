@@ -6,7 +6,7 @@ fmt:
 	@go fmt ./...
 
 lint:
-	@gometalinter ./... --vendor
+	@gometalinter ./... --deadline=5m --vendor --enable misspell --enable goimports
 
 test:
 	@go list ./... | grep -v vendor | xargs go test
