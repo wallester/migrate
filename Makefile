@@ -10,3 +10,6 @@ lint:
 
 test:
 	@go list ./... | grep -v vendor | xargs go test
+
+install:
+	@go install
