@@ -1,15 +1,10 @@
 package command
 
 import (
-	"fmt"
-	"io/ioutil"
-	"path/filepath"
-	"strings"
-	"time"
-
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
 	"github.com/wallester/migrate/flag"
+	"github.com/wallester/migrate/migration"
 )
 
 // Create creates new migration files
@@ -24,22 +19,9 @@ func Create(c *cli.Context) error {
 		return flag.NewRequiredFlagError(flag.FlagPath)
 	}
 
-	name = strings.Replace(name, " ", "_", -1)
-	version := time.Now().Unix()
-
-	up := fmt.Sprintf("%d_%s.up.sql", version, name)
-	if err := ioutil.WriteFile(filepath.Join(path, up), nil, 0644); err != nil {
-		return errors.Annotate(err, "writing up migration file failed")
+	if err := migration.Create(name, path); err != nil {
+		return errors.Annotate(err, "creating migration failed")
 	}
-
-	down := fmt.Sprintf("%d_%s.down.sql", version, name)
-	if err := ioutil.WriteFile(filepath.Join(path, down), nil, 0644); err != nil {
-		return errors.Annotate(err, "writing down migration file failed")
-	}
-
-	fmt.Println("Version", version, "migration files created in", path)
-	fmt.Println(up)
-	fmt.Println(down)
 
 	return nil
 }

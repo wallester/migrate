@@ -1,39 +1,48 @@
-package command
+package migration
 
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/juju/errors"
 	"github.com/mgutz/ansi"
-	"github.com/urfave/cli"
 	"github.com/wallester/migrate/database"
 	"github.com/wallester/migrate/file"
-	"github.com/wallester/migrate/flag"
 )
+
+// Up migrates up
+func Up(path, url string) error {
+	if err := migrate(path, url, true); err != nil {
+		return errors.Annotate(err, "migrating up failed")
+	}
+
+	return nil
+}
+
+// Down migrates down
+func Down(path, url string) error {
+	if err := migrate(path, url, false); err != nil {
+		return errors.Annotate(err, "migrating down failed")
+	}
+
+	return nil
+}
 
 var printPrefix = map[bool]string{
 	true:  ansi.Green + ">" + ansi.Reset,
 	false: ansi.Red + "<" + ansi.Reset,
 }
 
-func migrate(c *cli.Context, up bool) error {
+func migrate(path string, url string, up bool) error {
 	started := time.Now()
-
-	path := flag.Get(c, flag.FlagPath)
-	if path == "" {
-		return flag.NewRequiredFlagError(flag.FlagPath)
-	}
 
 	files, err := file.ListFiles(path, up)
 	if err != nil {
 		return errors.Annotate(err, "listing migration files failed")
-	}
-
-	url := flag.Get(c, flag.FlagURL)
-	if url == "" {
-		return flag.NewRequiredFlagError(flag.FlagURL)
 	}
 
 	var db database.Database
@@ -96,4 +105,25 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int]bool, up bool) 
 	}
 
 	return needsMigration, nil
+}
+
+func Create(name string, path string) error {
+	name = strings.Replace(name, " ", "_", -1)
+	version := time.Now().Unix()
+
+	up := fmt.Sprintf("%d_%s.up.sql", version, name)
+	if err := ioutil.WriteFile(filepath.Join(path, up), nil, 0644); err != nil {
+		return errors.Annotate(err, "writing up migration file failed")
+	}
+
+	down := fmt.Sprintf("%d_%s.down.sql", version, name)
+	if err := ioutil.WriteFile(filepath.Join(path, down), nil, 0644); err != nil {
+		return errors.Annotate(err, "writing down migration file failed")
+	}
+
+	fmt.Println("Version", version, "migration files created in", path)
+	fmt.Println(up)
+	fmt.Println(down)
+
+	return nil
 }
