@@ -6,11 +6,12 @@ import (
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
+	"github.com/wallester/migrate/printer"
 )
 
 // New returns new cli.App instance
 func New() *cli.App {
-	cmd := commander.New(migrator.New(driver.New()))
+	cmd := commander.New(migrator.New(driver.New(), printer.New()))
 
 	app := cli.NewApp()
 	app.Name = "migrate"

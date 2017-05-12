@@ -12,6 +12,7 @@ import (
 	"github.com/mgutz/ansi"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
+	"github.com/wallester/migrate/printer"
 )
 
 // Migrator represents possible migration actions
@@ -23,11 +24,15 @@ type Migrator interface {
 
 type migrator struct {
 	db driver.Driver
+	p  printer.Printer
 }
 
 // New returns new instance
-func New(db driver.Driver) Migrator {
-	return &migrator{db}
+func New(db driver.Driver, p printer.Printer) Migrator {
+	return &migrator{
+		db: db,
+		p:  p,
+	}
 }
 
 // Up migrates up
@@ -61,7 +66,8 @@ func (m *migrator) execute(path string, url string, up bool) error {
 		return errors.Annotate(err, "listing migration files failed")
 	}
 
-	if err := m.db.Open(url); err != nil {
+	err = m.db.Open(url)
+	if err != nil {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
@@ -73,12 +79,12 @@ func (m *migrator) execute(path string, url string, up bool) error {
 	}
 
 	for _, file := range migratedFiles {
-		fmt.Println(printPrefix[up], file.Base)
+		m.p.Println(printPrefix[up], file.Base)
 	}
 
-	fmt.Println("")
+	m.p.Println("")
 	spent := time.Since(started).Seconds()
-	fmt.Println(fmt.Sprintf("%.4f", spent), "seconds")
+	m.p.Println(fmt.Sprintf("%.4f", spent), "seconds")
 
 	return nil
 }
@@ -135,9 +141,9 @@ func (m *migrator) Create(name string, path string) error {
 		return errors.Annotate(err, "writing down migration file failed")
 	}
 
-	fmt.Println("Version", version, "migration files created in", path)
-	fmt.Println(up)
-	fmt.Println(down)
+	m.p.Println("Version", version, "migration files created in", path)
+	m.p.Println(up)
+	m.p.Println(down)
 
 	return nil
 }
