@@ -17,7 +17,7 @@ type File struct {
 	SQL     string
 }
 
-// ByBase implements sort.Interface for []MigrationFile based on
+// ByBase implements sort.Interface for []File based on
 // the Base field.
 type ByBase []File
 
