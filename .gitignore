@@ -27,4 +27,5 @@ _testmain.go
 migrate
 
 # Coverage output
-coverage.out
+coverage.cov
+coverage.html

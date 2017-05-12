@@ -15,5 +15,5 @@ install:
 	@go install
 
 cov:
-	@go test -coverprofile=coverage.out
-    @go tool cover -html=coverage.out
+	@go test -test.covermode=count -test.coverprofile coverage.cov
+	@go tool cover -html=coverage.cov -o coverage.html

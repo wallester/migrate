@@ -13,8 +13,23 @@ import (
 // File represents a migration file
 type File struct {
 	Base    string
-	Version int
+	Version int64
 	SQL     string
+}
+
+// Create creates a new file in the given path
+func (f File) Create(path string) error {
+	if err := ioutil.WriteFile(filepath.Join(path, f.Base), nil, 0644); err != nil {
+		return errors.Annotate(err, "writing migration file failed")
+	}
+
+	return nil
+}
+
+// Pair is a pair of migration files; up and down
+type Pair struct {
+	Up   File
+	Down File
 }
 
 // ByBase implements sort.Interface for []File based on
@@ -38,6 +53,17 @@ var filePrefix = map[bool]string{
 	false: "down",
 }
 
+// FindByVersion finds a file from list by version
+func FindByVersion(version int64, files []File) *File {
+	for _, file := range files {
+		if file.Version == version {
+			return &file
+		}
+	}
+
+	return nil
+}
+
 // ListFiles lists migration files on a given path
 func ListFiles(path string, up bool) ([]File, error) {
 	files, err := filepath.Glob(filepath.Join(path, "*_*."+filePrefix[up]+".sql"))
@@ -49,7 +75,7 @@ func ListFiles(path string, up bool) ([]File, error) {
 	for _, file := range files {
 		base := filepath.Base(file)
 
-		version, err := strconv.Atoi(strings.Split(base, "_")[0])
+		version, err := strconv.ParseInt(strings.Split(base, "_")[0], 10, 64)
 		if err != nil {
 			return nil, errors.Annotate(err, "parsing version failed")
 		}

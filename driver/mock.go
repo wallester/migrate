@@ -27,17 +27,14 @@ func (m *Mock) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // SelectMigrations is a mock method
-func (m *Mock) SelectMigrations(ctx context.Context) (map[int]bool, error) {
+func (m *Mock) SelectMigrations(ctx context.Context) (map[int64]bool, error) {
 	args := m.Called(ctx)
 
-	var result map[int]bool
-	if args.Get(0) == nil {
-		result = nil
-	} else {
-		result = args.Get(0).(map[int]bool)
+	if args.Get(0) != nil {
+		return args.Get(0).(map[int64]bool), args.Error(1)
 	}
 
-	return result, args.Error(1)
+	return nil, args.Error(1)
 }
 
 // ApplyMigrations is a mock method

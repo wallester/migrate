@@ -2,16 +2,29 @@ package printer
 
 import (
 	"fmt"
+	"strings"
 )
 
 // Recorder records printer output
 type Recorder struct {
-	output []string
+	Output []string
 }
 
 // Println remembers the printed values
 func (r *Recorder) Println(a ...interface{}) {
+	var line []string
 	for _, v := range a {
-		r.output = append(r.output, fmt.Sprintf("%v", v))
+		line = append(line, fmt.Sprintf("%v", v))
 	}
+	r.Output = append(r.Output, strings.Join(line, " "))
+}
+
+// String returns output as string
+func (r *Recorder) String() string {
+	return strings.Join(r.Output, "\n")
+}
+
+// Contains returns true if output contains given text
+func (r *Recorder) Contains(text string) bool {
+	return strings.Contains(r.String(), text)
 }

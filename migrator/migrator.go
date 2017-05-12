@@ -3,8 +3,6 @@ package migrator
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -17,9 +15,8 @@ import (
 
 // Migrator represents possible migration actions
 type Migrator interface {
-	Up(path string, url string) error
-	Down(path string, url string) error
-	Create(name string, path string) error
+	Migrate(path string, url string, up bool) error
+	Create(name string, path string) (*file.Pair, error)
 }
 
 type migrator struct {
@@ -35,30 +32,13 @@ func New(db driver.Driver, p printer.Printer) Migrator {
 	}
 }
 
-// Up migrates up
-func (m *migrator) Up(path, url string) error {
-	if err := m.execute(path, url, true); err != nil {
-		return errors.Annotate(err, "migrating up failed")
-	}
-
-	return nil
-}
-
-// Down migrates down
-func (m *migrator) Down(path, url string) error {
-	if err := m.execute(path, url, false); err != nil {
-		return errors.Annotate(err, "migrating down failed")
-	}
-
-	return nil
-}
-
 var printPrefix = map[bool]string{
 	true:  ansi.Green + ">" + ansi.Reset,
 	false: ansi.Red + "<" + ansi.Reset,
 }
 
-func (m *migrator) execute(path string, url string, up bool) error {
+// Migrate migrates up or down
+func (m *migrator) Migrate(path string, url string, up bool) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(path, up)
@@ -109,14 +89,16 @@ func (m *migrator) executeFiles(files []file.File, up bool) ([]file.File, error)
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
-	if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
-		return nil, errors.Annotate(err, "applying migrations failed")
+	if len(needsMigration) > 0 {
+		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
+			return nil, errors.Annotate(err, "applying migrations failed")
+		}
 	}
 
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated map[int]bool, up bool) ([]file.File, error) {
+func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool) ([]file.File, error) {
 	var needsMigration []file.File
 	for _, file := range files {
 		if (up && !alreadyMigrated[file.Version]) || (!up && alreadyMigrated[file.Version]) {
@@ -127,23 +109,32 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int]bool, up bool) 
 	return needsMigration, nil
 }
 
-func (m *migrator) Create(name string, path string) error {
+func (m *migrator) Create(name string, path string) (*file.Pair, error) {
 	name = strings.Replace(name, " ", "_", -1)
 	version := time.Now().Unix()
 
-	up := fmt.Sprintf("%d_%s.up.sql", version, name)
-	if err := ioutil.WriteFile(filepath.Join(path, up), nil, 0644); err != nil {
-		return errors.Annotate(err, "writing up migration file failed")
+	up := file.File{
+		Version: version,
+		Base:    fmt.Sprintf("%d_%s.up.sql", version, name),
+	}
+	if err := up.Create(path); err != nil {
+		return nil, errors.Annotate(err, "writing up migration file failed")
 	}
 
-	down := fmt.Sprintf("%d_%s.down.sql", version, name)
-	if err := ioutil.WriteFile(filepath.Join(path, down), nil, 0644); err != nil {
-		return errors.Annotate(err, "writing down migration file failed")
+	down := file.File{
+		Version: version,
+		Base:    fmt.Sprintf("%d_%s.down.sql", version, name),
+	}
+	if err := down.Create(path); err != nil {
+		return nil, errors.Annotate(err, "writing down migration file failed")
 	}
 
 	m.p.Println("Version", version, "migration files created in", path)
-	m.p.Println(up)
-	m.p.Println(down)
+	m.p.Println(up.Base)
+	m.p.Println(down.Base)
 
-	return nil
+	return &file.Pair{
+		Up:   up,
+		Down: down,
+	}, nil
 }

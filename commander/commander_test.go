@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/urfave/cli"
 	"github.com/wallester/migrate/driver"
+	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/migrator"
 	"github.com/wallester/migrate/printer"
 )
@@ -65,7 +66,8 @@ func Test_Create_ReturnsError_InCaseOfMigratorError(t *testing.T) {
 	}
 	c := cli.NewContext(nil, set, nil)
 	expectedErr := errors.New("failure")
-	migratorMock.On("Create", "create_table_users", "testdata").Return(expectedErr).Once()
+	pair := &file.Pair{}
+	migratorMock.On("Create", "create_table_users", "testdata").Return(pair, expectedErr).Once()
 
 	// Act
 	err := cmd.Create(c)
@@ -85,7 +87,8 @@ func Test_Create_ReturnsNil_InCaseOfSuccess(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 	c := cli.NewContext(nil, set, nil)
-	migratorMock.On("Create", "create_table_users", "testdata").Return(nil).Once()
+	pair := &file.Pair{}
+	migratorMock.On("Create", "create_table_users", "testdata").Return(pair, nil).Once()
 
 	// Act
 	err := cmd.Create(c)
@@ -138,7 +141,7 @@ func Test_Up_ReturnError_InCaseOfMigratorError(t *testing.T) {
 	}
 	c := cli.NewContext(nil, set, nil)
 	expectedErr := errors.New("failure")
-	migratorMock.On("Up", "testdata", "connectionurl").Return(expectedErr).Once()
+	migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(expectedErr).Once()
 
 	// Act
 	err := cmd.Up(c)
@@ -159,7 +162,7 @@ func Test_Up_ReturnNil_InCaseOfSuccess(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 	c := cli.NewContext(nil, set, nil)
-	migratorMock.On("Up", "testdata", "connectionurl").Return(nil).Once()
+	migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(nil).Once()
 
 	// Act
 	err := cmd.Up(c)
@@ -212,7 +215,7 @@ func Test_Down_ReturnError_InCaseOfMigratorError(t *testing.T) {
 	}
 	c := cli.NewContext(nil, set, nil)
 	expectedErr := errors.New("failure")
-	migratorMock.On("Down", "testdata", "connectionurl").Return(expectedErr).Once()
+	migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(expectedErr).Once()
 
 	// Act
 	err := cmd.Down(c)
@@ -233,7 +236,7 @@ func Test_Down_ReturnNil_InCaseOfSuccess(t *testing.T) {
 		assert.FailNow(t, err.Error())
 	}
 	c := cli.NewContext(nil, set, nil)
-	migratorMock.On("Down", "testdata", "connectionurl").Return(nil).Once()
+	migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(nil).Once()
 
 	// Act
 	err := cmd.Down(c)

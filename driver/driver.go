@@ -14,7 +14,7 @@ import (
 type Driver interface {
 	Open(url string) error
 	CreateMigrationsTable(ctx context.Context) error
-	SelectMigrations(ctx context.Context) (map[int]bool, error)
+	SelectMigrations(ctx context.Context) (map[int64]bool, error)
 	ApplyMigrations(ctx context.Context, files []file.File, up bool) error
 	Close()
 }
@@ -54,7 +54,7 @@ func closeRows(rows *sql.Rows) {
 }
 
 // SelectMigrations selects existing migrations
-func (db *driver) SelectMigrations(ctx context.Context) (map[int]bool, error) {
+func (db *driver) SelectMigrations(ctx context.Context) (map[int64]bool, error) {
 	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
@@ -64,9 +64,9 @@ func (db *driver) SelectMigrations(ctx context.Context) (map[int]bool, error) {
 
 	defer closeRows(rows)
 
-	migrated := make(map[int]bool)
+	migrated := make(map[int64]bool)
 	for rows.Next() {
-		var version int
+		var version int64
 		if err := rows.Scan(&version); err != nil {
 			return nil, errors.Annotate(err, "scanning version failed")
 		}
