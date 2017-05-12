@@ -26,3 +26,5 @@ _testmain.go
 # Built binary
 migrate
 
+# Coverage output
+coverage.out
