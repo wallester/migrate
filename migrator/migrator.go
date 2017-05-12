@@ -1,4 +1,4 @@
-package migration
+package migrator
 
 import (
 	"context"
@@ -10,13 +10,29 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/mgutz/ansi"
-	"github.com/wallester/migrate/database"
+	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 )
 
+// Migrator represents possible migration actions
+type Migrator interface {
+	Up(path string, url string) error
+	Down(path string, url string) error
+	Create(name string, path string) error
+}
+
+type migrator struct {
+	db driver.Driver
+}
+
+// New returns new instance
+func New(db driver.Driver) Migrator {
+	return &migrator{db}
+}
+
 // Up migrates up
-func Up(path, url string) error {
-	if err := migrate(path, url, true); err != nil {
+func (m *migrator) Up(path, url string) error {
+	if err := m.execute(path, url, true); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
 
@@ -24,8 +40,8 @@ func Up(path, url string) error {
 }
 
 // Down migrates down
-func Down(path, url string) error {
-	if err := migrate(path, url, false); err != nil {
+func (m *migrator) Down(path, url string) error {
+	if err := m.execute(path, url, false); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
 
@@ -37,7 +53,7 @@ var printPrefix = map[bool]string{
 	false: ansi.Red + "<" + ansi.Reset,
 }
 
-func migrate(path string, url string, up bool) error {
+func (m *migrator) execute(path string, url string, up bool) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(path, up)
@@ -45,15 +61,13 @@ func migrate(path string, url string, up bool) error {
 		return errors.Annotate(err, "listing migration files failed")
 	}
 
-	var db database.Database
-	err = db.Open(url)
-	if err != nil {
+	if err := m.db.Open(url); err != nil {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
-	defer db.Close()
+	defer m.db.Close()
 
-	migratedFiles, err := migrateFiles(db, files, up)
+	migratedFiles, err := m.executeFiles(files, up)
 	if err != nil {
 		return errors.Annotate(err, "migrating failed")
 	}
@@ -71,15 +85,15 @@ func migrate(path string, url string, up bool) error {
 
 const timeoutSeconds = 1
 
-func migrateFiles(db database.Database, files []file.File, up bool) ([]file.File, error) {
+func (m *migrator) executeFiles(files []file.File, up bool) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
 	defer cancel()
 
-	if err := db.CreateMigrationsTable(ctx); err != nil {
+	if err := m.db.CreateMigrationsTable(ctx); err != nil {
 		return nil, errors.Annotate(err, "creating migrations table failed")
 	}
 
-	alreadyMigrated, err := db.SelectMigrations(ctx)
+	alreadyMigrated, err := m.db.SelectMigrations(ctx)
 	if err != nil {
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
@@ -89,7 +103,7 @@ func migrateFiles(db database.Database, files []file.File, up bool) ([]file.File
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
-	if err := db.ApplyMigrations(ctx, needsMigration, up); err != nil {
+	if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
 		return nil, errors.Annotate(err, "applying migrations failed")
 	}
 
@@ -107,7 +121,7 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int]bool, up bool) 
 	return needsMigration, nil
 }
 
-func Create(name string, path string) error {
+func (m *migrator) Create(name string, path string) error {
 	name = strings.Replace(name, " ", "_", -1)
 	version := time.Now().Unix()
 

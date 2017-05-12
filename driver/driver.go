@@ -1,4 +1,4 @@
-package database
+package driver
 
 import (
 	"context"
@@ -10,26 +10,39 @@ import (
 	"github.com/wallester/migrate/file"
 )
 
-// Database represents database connection
-type Database struct {
-	db *sql.DB
+// Driver represents database driver
+type Driver interface {
+	Open(url string) error
+	CreateMigrationsTable(ctx context.Context) error
+	SelectMigrations(ctx context.Context) (map[int]bool, error)
+	ApplyMigrations(ctx context.Context, files []file.File, up bool) error
+	Close()
+}
+
+type driver struct {
+	connection *sql.DB
+}
+
+// New returns new instance
+func New() Driver {
+	return &driver{}
 }
 
 // Open opens database connection
-func (database *Database) Open(url string) error {
-	db, err := sql.Open("postgres", url)
+func (db *driver) Open(url string) error {
+	connection, err := sql.Open("postgres", url)
 	if err != nil {
 		return errors.Annotate(err, "connecting to database failed")
 	}
 
-	database.db = db
+	db.connection = connection
 
 	return nil
 }
 
 // Close closes database connection
-func (database *Database) Close() {
-	if err := database.db.Close(); err != nil {
+func (db *driver) Close() {
+	if err := db.connection.Close(); err != nil {
 		log.Println("Warning", errors.Annotate(err, "closing database connection failed"))
 	}
 }
@@ -41,8 +54,8 @@ func closeRows(rows *sql.Rows) {
 }
 
 // SelectMigrations selects existing migrations
-func (database *Database) SelectMigrations(ctx context.Context) (map[int]bool, error) {
-	rows, err := database.db.QueryContext(ctx, `
+func (db *driver) SelectMigrations(ctx context.Context) (map[int]bool, error) {
+	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
 	if err != nil {
@@ -65,8 +78,8 @@ func (database *Database) SelectMigrations(ctx context.Context) (map[int]bool, e
 }
 
 // CreateMigrationsTable creates migrations table if it does not exist yet
-func (database *Database) CreateMigrationsTable(ctx context.Context) error {
-	if _, err := database.db.ExecContext(ctx, `
+func (db *driver) CreateMigrationsTable(ctx context.Context) error {
+	if _, err := db.connection.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations(
 			version bigint not null primary key
 		)
@@ -83,8 +96,8 @@ var applyMigrationSQL = map[bool]string{
 }
 
 // ApplyMigrations applies migrations to database
-func (database *Database) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
-	tx, err := database.db.Begin()
+func (db *driver) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
+	tx, err := db.connection.Begin()
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
 	}

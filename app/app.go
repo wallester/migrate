@@ -2,12 +2,16 @@ package app
 
 import (
 	"github.com/urfave/cli"
-	"github.com/wallester/migrate/command"
+	"github.com/wallester/migrate/commander"
+	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/flag"
+	"github.com/wallester/migrate/migrator"
 )
 
 // New returns new cli.App instance
 func New() *cli.App {
+	cmd := commander.New(migrator.New(driver.New()))
+
 	app := cli.NewApp()
 	app.Name = "migrate"
 	app.Usage = "Command line tool for PostgreSQL migrations"
@@ -16,7 +20,7 @@ func New() *cli.App {
 			Name:      "create",
 			Usage:     "Create a new migration",
 			ArgsUsage: "<name>",
-			Action:    command.Create,
+			Action:    cmd.Create,
 			Flags: []cli.Flag{
 				flag.Path,
 			},
@@ -24,7 +28,7 @@ func New() *cli.App {
 		cli.Command{
 			Name:   "up",
 			Usage:  "Apply all -up- migrations",
-			Action: command.Up,
+			Action: cmd.Up,
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,
@@ -33,7 +37,7 @@ func New() *cli.App {
 		cli.Command{
 			Name:   "down",
 			Usage:  "Apply all -down- migrations",
-			Action: command.Down,
+			Action: cmd.Down,
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,
