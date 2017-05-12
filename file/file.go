@@ -1,4 +1,4 @@
-package command
+package file
 
 import (
 	"io/ioutil"
@@ -15,7 +15,8 @@ var filePrefix = map[bool]string{
 	false: "down",
 }
 
-type MigrationFile struct {
+// File represents a migration file
+type File struct {
 	Base    string
 	Version int
 	SQL     string
@@ -23,7 +24,7 @@ type MigrationFile struct {
 
 // ByBase implements sort.Interface for []MigrationFile based on
 // the Base field.
-type ByBase []MigrationFile
+type ByBase []File
 
 func (a ByBase) Len() int {
 	return len(a)
@@ -37,13 +38,14 @@ func (a ByBase) Less(i, j int) bool {
 	return a[i].Base < a[j].Base
 }
 
-func listMigrationFiles(path string, up bool) ([]MigrationFile, error) {
+// ListFiles lists migration files on a given path
+func ListFiles(path string, up bool) ([]File, error) {
 	files, err := filepath.Glob(filepath.Join(path, "*_*."+filePrefix[up]+".sql"))
 	if err != nil {
 		return nil, errors.Annotate(err, "getting migration files failed")
 	}
 
-	var migrations []MigrationFile
+	var migrations []File
 	for _, file := range files {
 		base := filepath.Base(file)
 
@@ -57,7 +59,7 @@ func listMigrationFiles(path string, up bool) ([]MigrationFile, error) {
 			return nil, errors.Annotate(err, "reading migration file failed")
 		}
 
-		migrations = append(migrations, MigrationFile{
+		migrations = append(migrations, File{
 			Base:    base,
 			Version: version,
 			SQL:     string(b),

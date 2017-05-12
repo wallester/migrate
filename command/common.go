@@ -8,6 +8,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/mgutz/ansi"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/flag"
 )
 
@@ -26,7 +27,7 @@ func migrate(c *cli.Context, up bool) error {
 		return flag.NewRequiredFlagError(flag.FlagPath)
 	}
 
-	files, err := listMigrationFiles(path, up)
+	files, err := file.ListFiles(path, up)
 	if err != nil {
 		return errors.Annotate(err, "listing migration files failed")
 	}
@@ -52,7 +53,7 @@ func migrate(c *cli.Context, up bool) error {
 	return nil
 }
 
-func migrateFiles(url string, files []MigrationFile, up bool) ([]MigrationFile, error) {
+func migrateFiles(url string, files []file.File, up bool) ([]file.File, error) {
 	db, err := openDB(url)
 	if err != nil {
 		return nil, errors.Annotate(err, "opening database connection failed")
@@ -85,8 +86,8 @@ func migrateFiles(url string, files []MigrationFile, up bool) ([]MigrationFile, 
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []MigrationFile, alreadyMigrated map[int]bool, up bool) ([]MigrationFile, error) {
-	var needsMigration []MigrationFile
+func chooseMigrations(files []file.File, alreadyMigrated map[int]bool, up bool) ([]file.File, error) {
+	var needsMigration []file.File
 	for _, file := range files {
 		if (up && !alreadyMigrated[file.Version]) || (!up && alreadyMigrated[file.Version]) {
 			needsMigration = append(needsMigration, file)

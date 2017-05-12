@@ -7,6 +7,7 @@ import (
 
 	"github.com/juju/errors"
 	_ "github.com/lib/pq" // import driver
+	"github.com/wallester/migrate/file"
 )
 
 var applyMigrationSQL = map[bool]string{
@@ -70,7 +71,7 @@ func closeRows(rows *sql.Rows) {
 	}
 }
 
-func applyMigrations(ctx context.Context, db *sql.DB, files []MigrationFile, up bool) error {
+func applyMigrations(ctx context.Context, db *sql.DB, files []file.File, up bool) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
