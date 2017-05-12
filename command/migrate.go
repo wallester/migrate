@@ -13,8 +13,6 @@ import (
 	"github.com/wallester/migrate/flag"
 )
 
-const timeoutSeconds = 1
-
 var printPrefix = map[bool]string{
 	true:  ansi.Green + ">" + ansi.Reset,
 	false: ansi.Red + "<" + ansi.Reset,
@@ -61,6 +59,8 @@ func migrate(c *cli.Context, up bool) error {
 
 	return nil
 }
+
+const timeoutSeconds = 1
 
 func migrateFiles(db database.Database, files []file.File, up bool) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
