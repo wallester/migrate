@@ -8,6 +8,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/mgutz/ansi"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/database"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/flag"
 )
@@ -37,7 +38,15 @@ func migrate(c *cli.Context, up bool) error {
 		return flag.NewRequiredFlagError(flag.FlagURL)
 	}
 
-	migratedFiles, err := migrateFiles(url, files, up)
+	var db database.Database
+	err = db.Open(url)
+	if err != nil {
+		return errors.Annotate(err, "opening database connection failed")
+	}
+
+	defer db.Close()
+
+	migratedFiles, err := migrateFiles(db, files, up)
 	if err != nil {
 		return errors.Annotate(err, "migrating failed")
 	}
@@ -53,23 +62,15 @@ func migrate(c *cli.Context, up bool) error {
 	return nil
 }
 
-func migrateFiles(url string, files []file.File, up bool) ([]file.File, error) {
-	db, err := openDB(url)
-	if err != nil {
-		return nil, errors.Annotate(err, "opening database connection failed")
-	}
-
-	defer closeDB(db)
-
+func migrateFiles(db database.Database, files []file.File, up bool) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
 	defer cancel()
 
-	err = createMigrationsTable(ctx, db)
-	if err != nil {
+	if err := db.CreateMigrationsTable(ctx); err != nil {
 		return nil, errors.Annotate(err, "creating migrations table failed")
 	}
 
-	alreadyMigrated, err := selectExistingMigrations(ctx, db)
+	alreadyMigrated, err := db.SelectMigrations(ctx)
 	if err != nil {
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
@@ -79,7 +80,7 @@ func migrateFiles(url string, files []file.File, up bool) ([]file.File, error) {
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
-	if err := applyMigrations(ctx, db, needsMigration, up); err != nil {
+	if err := db.ApplyMigrations(ctx, needsMigration, up); err != nil {
 		return nil, errors.Annotate(err, "applying migrations failed")
 	}
 

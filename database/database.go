@@ -1,4 +1,4 @@
-package command
+package database
 
 import (
 	"context"
@@ -10,28 +10,39 @@ import (
 	"github.com/wallester/migrate/file"
 )
 
-var applyMigrationSQL = map[bool]string{
-	true:  "INSERT INTO schema_migrations(version) VALUES($1)",
-	false: "DELETE FROM schema_migrations WHERE version = $1",
+// Database represents database connection
+type Database struct {
+	db *sql.DB
 }
 
-func openDB(url string) (*sql.DB, error) {
+// Open opens database connection
+func (database *Database) Open(url string) error {
 	db, err := sql.Open("postgres", url)
 	if err != nil {
-		return nil, errors.Annotate(err, "connecting to database failed")
+		return errors.Annotate(err, "connecting to database failed")
 	}
 
-	return db, nil
+	database.db = db
+
+	return nil
 }
 
-func closeDB(db *sql.DB) {
-	if err := db.Close(); err != nil {
+// Close closes database connection
+func (database *Database) Close() {
+	if err := database.db.Close(); err != nil {
 		log.Println("Warning", errors.Annotate(err, "closing database connection failed"))
 	}
 }
 
-func selectExistingMigrations(ctx context.Context, db *sql.DB) (map[int]bool, error) {
-	rows, err := db.QueryContext(ctx, `
+func closeRows(rows *sql.Rows) {
+	if err := rows.Close(); err != nil {
+		log.Println("Warning", errors.Annotate(err, "closing sql result rows failed"))
+	}
+}
+
+// SelectMigrations selects existing migrations
+func (database *Database) SelectMigrations(ctx context.Context) (map[int]bool, error) {
+	rows, err := database.db.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
 	if err != nil {
@@ -53,8 +64,9 @@ func selectExistingMigrations(ctx context.Context, db *sql.DB) (map[int]bool, er
 	return migrated, nil
 }
 
-func createMigrationsTable(ctx context.Context, db *sql.DB) error {
-	if _, err := db.ExecContext(ctx, `
+// CreateMigrationsTable creates migrations table if it does not exist yet
+func (database *Database) CreateMigrationsTable(ctx context.Context) error {
+	if _, err := database.db.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations(
 			version bigint not null primary key
 		)
@@ -65,14 +77,14 @@ func createMigrationsTable(ctx context.Context, db *sql.DB) error {
 	return nil
 }
 
-func closeRows(rows *sql.Rows) {
-	if err := rows.Close(); err != nil {
-		log.Println("Warning", errors.Annotate(err, "closing sql result rows failed"))
-	}
+var applyMigrationSQL = map[bool]string{
+	true:  "INSERT INTO schema_migrations(version) VALUES($1)",
+	false: "DELETE FROM schema_migrations WHERE version = $1",
 }
 
-func applyMigrations(ctx context.Context, db *sql.DB, files []file.File, up bool) error {
-	tx, err := db.Begin()
+// ApplyMigrations applies migrations to database
+func (database *Database) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
+	tx, err := database.db.Begin()
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
 	}

@@ -10,11 +10,6 @@ import (
 	"github.com/juju/errors"
 )
 
-var filePrefix = map[bool]string{
-	true:  "up",
-	false: "down",
-}
-
 // File represents a migration file
 type File struct {
 	Base    string
@@ -36,6 +31,11 @@ func (a ByBase) Swap(i, j int) {
 
 func (a ByBase) Less(i, j int) bool {
 	return a[i].Base < a[j].Base
+}
+
+var filePrefix = map[bool]string{
+	true:  "up",
+	false: "down",
 }
 
 // ListFiles lists migration files on a given path
