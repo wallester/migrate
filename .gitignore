@@ -26,5 +26,3 @@ _testmain.go
 # Built binary
 migrate
 
-# Created migrations
-migrations
