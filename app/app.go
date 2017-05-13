@@ -3,7 +3,7 @@ package app
 import (
 	"github.com/urfave/cli"
 	"github.com/wallester/migrate/commander"
-	"github.com/wallester/migrate/driver"
+	"github.com/wallester/migrate/driver/postgres"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
 	"github.com/wallester/migrate/printer"
@@ -11,7 +11,7 @@ import (
 
 // New returns new cli.App instance
 func New() *cli.App {
-	cmd := commander.New(migrator.New(driver.New(), printer.New()))
+	cmd := commander.New(migrator.New(postgres.New(), printer.New()))
 
 	app := cli.NewApp()
 	app.Name = "migrate"

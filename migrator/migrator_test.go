@@ -36,7 +36,7 @@ func Test_Migrator_TestSuite(t *testing.T) {
 
 func (suite *MigratorTestSuite) Test_New_ReturnsNewInstance_InCaseOfSuccess() {
 	// Act
-	instance := New(driver.New(), printer.New())
+	instance := New(&driver.Mock{}, printer.New())
 
 	// Assert
 	assert.NotNil(suite.T(), instance)

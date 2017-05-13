@@ -15,7 +15,7 @@ import (
 
 func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 	// Act
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 
 	// Assert
 	assert.NotNil(t, cmd)
@@ -26,7 +26,7 @@ func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 
 func Test_Create_ReturnsError_InCaseOfMissingArgument(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	c := cli.NewContext(nil, set, nil)
 
@@ -40,7 +40,7 @@ func Test_Create_ReturnsError_InCaseOfMissingArgument(t *testing.T) {
 
 func Test_Create_ReturnsError_InCaseOfMissingFlag(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	if err := set.Parse([]string{"create_table_users"}); err != nil {
 		assert.FailNow(t, err.Error())
@@ -99,7 +99,7 @@ func Test_Create_ReturnsNil_InCaseOfSuccess(t *testing.T) {
 
 func Test_Up_ReturnError_InCaseOfMissingPath(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	c := cli.NewContext(nil, set, nil)
 
@@ -113,7 +113,7 @@ func Test_Up_ReturnError_InCaseOfMissingPath(t *testing.T) {
 
 func Test_Up_ReturnError_InCaseOfMissingURL(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	set.String("path", "", "")
 	if err := set.Parse([]string{"--path", "testdata"}); err != nil {
@@ -173,7 +173,7 @@ func Test_Up_ReturnNil_InCaseOfSuccess(t *testing.T) {
 
 func Test_Down_ReturnError_InCaseOfMissingPath(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	c := cli.NewContext(nil, set, nil)
 
@@ -187,7 +187,7 @@ func Test_Down_ReturnError_InCaseOfMissingPath(t *testing.T) {
 
 func Test_Down_ReturnError_InCaseOfMissingURL(t *testing.T) {
 	// Arrange
-	cmd := New(migrator.New(driver.New(), printer.New()))
+	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
 	set := flag.NewFlagSet("test", 0)
 	set.String("path", "", "")
 	if err := set.Parse([]string{"--path", "testdata"}); err != nil {
