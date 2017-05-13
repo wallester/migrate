@@ -130,7 +130,7 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMigratorError() {
 	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(suite.expectedErr).Once()
+	suite.migratorMock.On("MigrateAll", "testdata", "connectionurl", true).Return(suite.expectedErr).Once()
 
 	// Act
 	err := suite.instance.Up(suite.c)
@@ -147,7 +147,7 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
 	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(nil).Once()
+	suite.migratorMock.On("MigrateAll", "testdata", "connectionurl", true).Return(nil).Once()
 
 	// Act
 	err := suite.instance.Up(suite.c)
@@ -187,7 +187,7 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMigratorError() {
 	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(suite.expectedErr).Once()
+	suite.migratorMock.On("MigrateAll", "testdata", "connectionurl", false).Return(suite.expectedErr).Once()
 
 	// Act
 	err := suite.instance.Down(suite.c)
@@ -204,7 +204,7 @@ func (suite *CommanderTestSuite) Test_Down_ReturnNil_InCaseOfSuccess() {
 	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(nil).Once()
+	suite.migratorMock.On("MigrateAll", "testdata", "connectionurl", false).Return(nil).Once()
 
 	// Act
 	err := suite.instance.Down(suite.c)
