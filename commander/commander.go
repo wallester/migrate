@@ -54,7 +54,7 @@ func (cmd *commander) Up(c *cli.Context) error {
 		return flag.NewRequiredFlagError(flag.FlagURL)
 	}
 
-	if err := cmd.m.MigrateAll(path, url, true); err != nil {
+	if err := cmd.m.Migrate(path, url, true); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
 
@@ -73,7 +73,7 @@ func (cmd *commander) Down(c *cli.Context) error {
 		return flag.NewRequiredFlagError(flag.FlagURL)
 	}
 
-	if err := cmd.m.MigrateAll(path, url, false); err != nil {
+	if err := cmd.m.Migrate(path, url, false); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
 

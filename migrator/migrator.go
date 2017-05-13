@@ -15,7 +15,7 @@ import (
 
 // Migrator represents possible migration actions
 type Migrator interface {
-	MigrateAll(path string, url string, up bool) error
+	Migrate(path string, url string, up bool) error
 	Create(name string, path string) (*file.Pair, error)
 }
 
@@ -37,8 +37,8 @@ var printPrefix = map[bool]string{
 	false: ansi.Red + "<" + ansi.Reset,
 }
 
-// Migrate migrates all up or down
-func (m *migrator) MigrateAll(path string, url string, up bool) error {
+// Migrate migrates up or down
+func (m *migrator) Migrate(path string, url string, up bool) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(path, up)

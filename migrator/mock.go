@@ -10,8 +10,8 @@ type Mock struct {
 	mock.Mock
 }
 
-// MigrateAll is a mock method
-func (m *Mock) MigrateAll(path string, url string, up bool) error {
+// Migrate is a mock method
+func (m *Mock) Migrate(path string, url string, up bool) error {
 	args := m.Called(path, url, up)
 
 	return args.Error(0)
