@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/juju/errors"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
 	"github.com/wallester/migrate/driver"
@@ -39,7 +38,7 @@ func (suite *MigratorTestSuite) Test_New_ReturnsNewInstance_InCaseOfSuccess() {
 	instance := New(&driver.Mock{}, printer.New())
 
 	// Assert
-	assert.NotNil(suite.T(), instance)
+	suite.NotNil(instance)
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsToRun() {
@@ -62,8 +61,8 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsTo
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.Nil(suite.T(), errors.Cause(err))
-	assert.True(suite.T(), suite.output.Contains("seconds"))
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("seconds"))
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenError() {
@@ -75,9 +74,9 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.NotNil(suite.T(), err)
-	assert.EqualError(suite.T(), err, "opening database connection failed: failure")
-	assert.Empty(suite.T(), suite.output.String())
+	suite.NotNil(err)
+	suite.EqualError(err, "opening database connection failed: failure")
+	suite.Empty(suite.output.String())
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMigrationsTableError() {
@@ -91,9 +90,9 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.NotNil(suite.T(), err)
-	assert.EqualError(suite.T(), err, "migrating failed: creating migrations table failed: failure")
-	assert.Empty(suite.T(), suite.output.String())
+	suite.NotNil(err)
+	suite.EqualError(err, "migrating failed: creating migrations table failed: failure")
+	suite.Empty(suite.output.String())
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigrationsError() {
@@ -108,9 +107,9 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.NotNil(suite.T(), err)
-	assert.EqualError(suite.T(), err, "migrating failed: selecting existing migrations failed: failure")
-	assert.Empty(suite.T(), suite.output.String())
+	suite.NotNil(err)
+	suite.EqualError(err, "migrating failed: selecting existing migrations failed: failure")
+	suite.Empty(suite.output.String())
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMigrationsError() {
@@ -141,7 +140,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.NotNil(suite.T(), errors.Cause(err))
+	suite.NotNil(errors.Cause(err))
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRun() {
@@ -172,9 +171,9 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.Nil(suite.T(), errors.Cause(err))
-	assert.True(suite.T(), suite.output.Contains("1494538317_add-phone-number-to-users.up.sql"))
-	assert.True(suite.T(), suite.output.Contains("seconds"))
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("1494538317_add-phone-number-to-users.up.sql"))
+	suite.True(suite.output.Contains("seconds"))
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrationsToRun() {
@@ -197,8 +196,8 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrations
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.Nil(suite.T(), errors.Cause(err))
-	assert.True(suite.T(), suite.output.Contains("seconds"))
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("seconds"))
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsToRun() {
@@ -229,9 +228,9 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	assert.Nil(suite.T(), errors.Cause(err))
-	assert.True(suite.T(), suite.output.Contains("1494538407_replace-user-phone-with-email.down.sql"))
-	assert.True(suite.T(), suite.output.Contains("seconds"))
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("1494538407_replace-user-phone-with-email.down.sql"))
+	suite.True(suite.output.Contains("seconds"))
 }
 
 func (suite *MigratorTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
@@ -242,14 +241,14 @@ func (suite *MigratorTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	pair, err := suite.instance.Create("create_table_invoices", path)
 
 	// Assert
-	assert.Nil(suite.T(), err)
-	assert.NotNil(suite.T(), pair)
+	suite.Nil(err)
+	suite.NotNil(pair)
 	defer remove(filepath.Join(path, pair.Up.Base))
 	defer remove(filepath.Join(path, pair.Down.Base))
 	versionString := fmt.Sprintf("Version %d migration files created in %s", pair.Up.Version, path)
-	assert.True(suite.T(), suite.output.Contains(versionString))
-	assert.True(suite.T(), suite.output.Contains(pair.Up.Base))
-	assert.True(suite.T(), suite.output.Contains(pair.Down.Base))
+	suite.True(suite.output.Contains(versionString))
+	suite.True(suite.output.Contains(pair.Up.Base))
+	suite.True(suite.output.Contains(pair.Down.Base))
 }
 
 func remove(filename string) {

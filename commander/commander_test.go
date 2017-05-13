@@ -5,242 +5,210 @@ import (
 	"testing"
 
 	"github.com/juju/errors"
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"github.com/urfave/cli"
-	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/migrator"
-	"github.com/wallester/migrate/printer"
 )
 
-func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
-	// Act
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-
-	// Assert
-	assert.NotNil(t, cmd)
-	assert.NotNil(t, cmd.Create)
-	assert.NotNil(t, cmd.Up)
-	assert.NotNil(t, cmd.Down)
+type CommanderTestSuite struct {
+	suite.Suite
+	migratorMock *migrator.Mock
+	instance     Commander
+	expectedErr  error
+	set          *flag.FlagSet
+	c            *cli.Context
 }
 
-func Test_Create_ReturnsError_InCaseOfMissingArgument(t *testing.T) {
-	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	c := cli.NewContext(nil, set, nil)
-
-	// Act
-	err := cmd.Create(c)
-
-	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify migration name")
+func (suite *CommanderTestSuite) SetupTest() {
+	suite.migratorMock = &migrator.Mock{}
+	suite.instance = New(suite.migratorMock)
+	suite.expectedErr = errors.New("failure")
+	suite.set = flag.NewFlagSet("test", 0)
+	suite.c = cli.NewContext(nil, suite.set, nil)
 }
 
-func Test_Create_ReturnsError_InCaseOfMissingFlag(t *testing.T) {
+func Test_Commander_TestSuite(t *testing.T) {
+	suite.Run(t, &CommanderTestSuite{})
+}
+
+func (suite *CommanderTestSuite) Test_New_ReturnsInstance_InCaseOfSuccess() {
+	// Act
+	cmd := New(suite.migratorMock)
+
+	// Assert
+	suite.NotNil(cmd)
+	suite.NotNil(cmd.Create)
+	suite.NotNil(cmd.Up)
+	suite.NotNil(cmd.Down)
+}
+
+func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingArgument() {
+	// Act
+	err := suite.instance.Create(suite.c)
+
+	// Assert
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify migration name")
+}
+
+func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingFlag() {
 	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	if err := set.Parse([]string{"create_table_users"}); err != nil {
-		assert.FailNow(t, err.Error())
+	if err := suite.set.Parse([]string{"create_table_users"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
 
 	// Act
-	err := cmd.Create(c)
+	err := suite.instance.Create(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify path")
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify path")
 }
 
-func Test_Create_ReturnsError_InCaseOfMigratorError(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMigratorError() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "create_table_users"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "create_table_users"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
-	expectedErr := errors.New("failure")
 	pair := &file.Pair{}
-	migratorMock.On("Create", "create_table_users", "testdata").Return(pair, expectedErr).Once()
+	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, suite.expectedErr).Once()
 
 	// Act
-	err := cmd.Create(c)
+	err := suite.instance.Create(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "creating migration failed: failure")
+	suite.NotNil(err)
+	suite.EqualError(err, "creating migration failed: failure")
 }
 
-func Test_Create_ReturnsNil_InCaseOfSuccess(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "create_table_users"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "create_table_users"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
 	pair := &file.Pair{}
-	migratorMock.On("Create", "create_table_users", "testdata").Return(pair, nil).Once()
+	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, nil).Once()
 
 	// Act
-	err := cmd.Create(c)
+	err := suite.instance.Create(suite.c)
 
 	// Assert
-	assert.Nil(t, err)
+	suite.Nil(err)
 }
 
-func Test_Up_ReturnError_InCaseOfMissingPath(t *testing.T) {
-	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	c := cli.NewContext(nil, set, nil)
-
+func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingPath() {
 	// Act
-	err := cmd.Up(c)
+	err := suite.instance.Up(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify path")
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify path")
 }
 
-func Test_Up_ReturnError_InCaseOfMissingURL(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingURL() {
 	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	if err := set.Parse([]string{"--path", "testdata"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
 
 	// Act
-	err := cmd.Up(c)
+	err := suite.instance.Up(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify url")
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify url")
 }
 
-func Test_Up_ReturnError_InCaseOfMigratorError(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMigratorError() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	set.String("url", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	suite.set.String("url", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
-	expectedErr := errors.New("failure")
-	migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(expectedErr).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(suite.expectedErr).Once()
 
 	// Act
-	err := cmd.Up(c)
+	err := suite.instance.Up(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "migrating up failed: failure")
+	suite.NotNil(err)
+	suite.EqualError(err, "migrating up failed: failure")
 }
 
-func Test_Up_ReturnNil_InCaseOfSuccess(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	set.String("url", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	suite.set.String("url", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
-	migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(nil).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true).Return(nil).Once()
 
 	// Act
-	err := cmd.Up(c)
+	err := suite.instance.Up(suite.c)
 
 	// Assert
-	assert.Nil(t, err)
+	suite.Nil(err)
 }
 
-func Test_Down_ReturnError_InCaseOfMissingPath(t *testing.T) {
-	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	c := cli.NewContext(nil, set, nil)
-
+func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingPath() {
 	// Act
-	err := cmd.Down(c)
+	err := suite.instance.Down(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify path")
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify path")
 }
 
-func Test_Down_ReturnError_InCaseOfMissingURL(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingURL() {
 	// Arrange
-	cmd := New(migrator.New(&driver.Mock{}, printer.New()))
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	if err := set.Parse([]string{"--path", "testdata"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
 
 	// Act
-	err := cmd.Down(c)
+	err := suite.instance.Down(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "please specify url")
+	suite.NotNil(err)
+	suite.EqualError(err, "please specify url")
 }
 
-func Test_Down_ReturnError_InCaseOfMigratorError(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMigratorError() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	set.String("url", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	suite.set.String("url", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
-	expectedErr := errors.New("failure")
-	migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(expectedErr).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(suite.expectedErr).Once()
 
 	// Act
-	err := cmd.Down(c)
+	err := suite.instance.Down(suite.c)
 
 	// Assert
-	assert.NotNil(t, err)
-	assert.EqualError(t, err, "migrating down failed: failure")
+	suite.NotNil(err)
+	suite.EqualError(err, "migrating down failed: failure")
 }
 
-func Test_Down_ReturnNil_InCaseOfSuccess(t *testing.T) {
+func (suite *CommanderTestSuite) Test_Down_ReturnNil_InCaseOfSuccess() {
 	// Arrange
-	migratorMock := &migrator.Mock{}
-	cmd := New(migratorMock)
-	set := flag.NewFlagSet("test", 0)
-	set.String("path", "", "")
-	set.String("url", "", "")
-	if err := set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
-		assert.FailNow(t, err.Error())
+	suite.set.String("path", "", "")
+	suite.set.String("url", "", "")
+	if err := suite.set.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
+		suite.FailNow(err.Error())
 	}
-	c := cli.NewContext(nil, set, nil)
-	migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(nil).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false).Return(nil).Once()
 
 	// Act
-	err := cmd.Down(c)
+	err := suite.instance.Down(suite.c)
 
 	// Assert
-	assert.Nil(t, err)
+	suite.Nil(err)
 }
