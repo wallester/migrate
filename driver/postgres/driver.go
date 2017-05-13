@@ -45,8 +45,8 @@ func closeRows(rows *sql.Rows) {
 	}
 }
 
-// SelectMigrations selects existing migrations
-func (db *postgres) SelectMigrations(ctx context.Context) (map[int64]bool, error) {
+// SelectAllMigrations selects existing migrations
+func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, error) {
 	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)

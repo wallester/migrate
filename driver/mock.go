@@ -26,8 +26,8 @@ func (m *Mock) CreateMigrationsTable(ctx context.Context) error {
 	return args.Error(0)
 }
 
-// SelectMigrations is a mock method
-func (m *Mock) SelectMigrations(ctx context.Context) (map[int64]bool, error) {
+// SelectAllMigrations is a mock method
+func (m *Mock) SelectAllMigrations(ctx context.Context) (map[int64]bool, error) {
 	args := m.Called(ctx)
 
 	if args.Get(0) != nil {

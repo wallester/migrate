@@ -53,7 +53,7 @@ func (m *migrator) MigrateAll(path string, url string, up bool) error {
 
 	defer m.db.Close()
 
-	migratedFiles, err := m.executeFiles(files, up)
+	migratedFiles, err := m.applyFiles(files, up)
 	if err != nil {
 		return errors.Annotate(err, "migrating failed")
 	}
@@ -71,7 +71,7 @@ func (m *migrator) MigrateAll(path string, url string, up bool) error {
 
 const timeoutSeconds = 1
 
-func (m *migrator) executeFiles(files []file.File, up bool) ([]file.File, error) {
+func (m *migrator) applyFiles(files []file.File, up bool) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
 	defer cancel()
 
@@ -79,7 +79,7 @@ func (m *migrator) executeFiles(files []file.File, up bool) ([]file.File, error)
 		return nil, errors.Annotate(err, "creating migrations table failed")
 	}
 
-	alreadyMigrated, err := m.db.SelectMigrations(ctx)
+	alreadyMigrated, err := m.db.SelectAllMigrations(ctx)
 	if err != nil {
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
