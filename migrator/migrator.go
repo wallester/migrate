@@ -15,7 +15,7 @@ import (
 
 // Migrator represents possible migration actions
 type Migrator interface {
-	Migrate(path string, url string, up bool) error
+	Migrate(path string, url string, up bool, steps int) error
 	Create(name string, path string) (*file.Pair, error)
 }
 
@@ -38,7 +38,7 @@ var printPrefix = map[bool]string{
 }
 
 // Migrate migrates up or down
-func (m *migrator) Migrate(path string, url string, up bool) error {
+func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(path, up)
@@ -53,7 +53,7 @@ func (m *migrator) Migrate(path string, url string, up bool) error {
 
 	defer m.db.Close()
 
-	migratedFiles, err := m.applyFiles(files, up)
+	migratedFiles, err := m.applyMigrations(files, up, steps)
 	if err != nil {
 		return errors.Annotate(err, "migrating failed")
 	}
@@ -71,7 +71,7 @@ func (m *migrator) Migrate(path string, url string, up bool) error {
 
 const timeoutSeconds = 1
 
-func (m *migrator) applyFiles(files []file.File, up bool) ([]file.File, error) {
+func (m *migrator) applyMigrations(files []file.File, up bool, steps int) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
 	defer cancel()
 
@@ -87,6 +87,10 @@ func (m *migrator) applyFiles(files []file.File, up bool) ([]file.File, error) {
 	needsMigration, err := chooseMigrations(files, alreadyMigrated, up)
 	if err != nil {
 		return nil, errors.Annotate(err, "choosing migrations failed")
+	}
+
+	if steps > 0 && len(needsMigration) >= steps {
+		needsMigration = needsMigration[:steps]
 	}
 
 	if len(needsMigration) > 0 {

@@ -27,18 +27,20 @@ func New() *cli.App {
 			},
 		},
 		cli.Command{
-			Name:   "up",
-			Usage:  "Apply all -up- migrations",
-			Action: cmd.Up,
+			Name:      "up",
+			Usage:     "Apply <n> or all up migrations",
+			Action:    cmd.Up,
+			ArgsUsage: "<n>",
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,
 			},
 		},
 		cli.Command{
-			Name:   "down",
-			Usage:  "Apply all -down- migrations",
-			Action: cmd.Down,
+			Name:      "down",
+			Usage:     "Apply <n> or all down migrations",
+			Action:    cmd.Down,
+			ArgsUsage: "<n>",
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,

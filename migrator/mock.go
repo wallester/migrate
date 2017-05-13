@@ -11,8 +11,8 @@ type Mock struct {
 }
 
 // Migrate is a mock method
-func (m *Mock) Migrate(path string, url string, up bool) error {
-	args := m.Called(path, url, up)
+func (m *Mock) Migrate(path string, url string, up bool, steps int) error {
+	args := m.Called(path, url, up, steps)
 
 	return args.Error(0)
 }
