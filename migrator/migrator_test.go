@@ -256,3 +256,65 @@ func remove(filename string) {
 		fmt.Println("removing file failed", err)
 	}
 }
+
+func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationToRun() {
+	// Arrange
+	// The following versions are from ../testdata.
+	migrations := map[int64]bool{
+		1494538273: false,
+		1494538317: false,
+		1494538407: false,
+	}
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
+	if err != nil {
+		suite.FailNow(err.Error())
+	}
+	needsMigration := []file.File{
+		*file.FindByVersion(1494538273, files),
+	}
+	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
+	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
+	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, true).Return(nil).Once()
+	suite.driverMock.On("Close").Once()
+
+	// Act
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 1)
+
+	// Assert
+	suite.driverMock.AssertExpectations(suite.T())
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("1494538273_create-table-users.up.sql"))
+	suite.True(suite.output.Contains("seconds"))
+}
+
+func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigrationToRun() {
+	// Arrange
+	// The following versions are from ../testdata.
+	migrations := map[int64]bool{
+		1494538273: true,
+		1494538317: true,
+		1494538407: true,
+	}
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), false)
+	if err != nil {
+		suite.FailNow(err.Error())
+	}
+	needsMigration := []file.File{
+		*file.FindByVersion(1494538407, files),
+	}
+	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
+	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
+	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, false).Return(nil).Once()
+	suite.driverMock.On("Close").Once()
+
+	// Act
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 1)
+
+	// Assert
+	suite.driverMock.AssertExpectations(suite.T())
+	suite.Nil(errors.Cause(err))
+	suite.True(suite.output.Contains("1494538407_replace-user-phone-with-email.down.sql"))
+	suite.True(suite.output.Contains("seconds"))
+}

@@ -84,14 +84,7 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int) ([]fil
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration, err := chooseMigrations(files, alreadyMigrated, up)
-	if err != nil {
-		return nil, errors.Annotate(err, "choosing migrations failed")
-	}
-
-	if steps > 0 && len(needsMigration) >= steps {
-		needsMigration = needsMigration[:steps]
-	}
+	needsMigration := chooseMigrations(files, alreadyMigrated, up, steps)
 
 	if len(needsMigration) > 0 {
 		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
@@ -102,7 +95,7 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int) ([]fil
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool) ([]file.File, error) {
+func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) []file.File {
 	var needsMigration []file.File
 	for _, file := range files {
 		if (up && !alreadyMigrated[file.Version]) || (!up && alreadyMigrated[file.Version]) {
@@ -110,7 +103,11 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool
 		}
 	}
 
-	return needsMigration, nil
+	if steps > 0 && len(needsMigration) >= steps {
+		needsMigration = needsMigration[:steps]
+	}
+
+	return needsMigration
 }
 
 func (m *migrator) Create(name string, path string) (*file.Pair, error) {
