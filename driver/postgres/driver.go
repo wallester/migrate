@@ -3,7 +3,6 @@ package postgres
 import (
 	"context"
 	"database/sql"
-	"log"
 
 	"github.com/juju/errors"
 	_ "github.com/lib/pq" // import driver
@@ -33,16 +32,12 @@ func (db *postgres) Open(url string) error {
 }
 
 // Close closes database connection
-func (db *postgres) Close() {
+func (db *postgres) Close() error {
 	if err := db.connection.Close(); err != nil {
-		log.Println("Warning", errors.Annotate(err, "closing database connection failed"))
+		return errors.Annotate(err, "closing database connection failed")
 	}
-}
 
-func closeRows(rows *sql.Rows) {
-	if err := rows.Close(); err != nil {
-		log.Println("Warning", errors.Annotate(err, "closing sql result rows failed"))
-	}
+	return nil
 }
 
 // SelectAllMigrations selects existing migrations
@@ -54,16 +49,22 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, er
 		return nil, errors.Annotate(err, "selecting existing migration versions failed")
 	}
 
-	defer closeRows(rows)
-
 	migrated := make(map[int64]bool)
 	for rows.Next() {
 		var version int64
 		if err := rows.Scan(&version); err != nil {
+			if closeErr := rows.Close(); closeErr != nil {
+				return nil, errors.Annotate(closeErr, "closing rows failed")
+			}
+
 			return nil, errors.Annotate(err, "scanning version failed")
 		}
 
 		migrated[version] = true
+	}
+
+	if closeErr := rows.Close(); closeErr != nil {
+		return nil, errors.Annotate(closeErr, "closing rows failed")
 	}
 
 	return migrated, nil

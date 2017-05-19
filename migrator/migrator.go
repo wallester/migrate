@@ -51,10 +51,12 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
-	defer m.db.Close()
-
 	migratedFiles, err := m.applyMigrations(files, up, steps)
 	if err != nil {
+		if closeErr := m.db.Close(); closeErr != nil {
+			return errors.Annotate(closeErr, "closing database connection failed")
+		}
+
 		return errors.Annotate(err, "migrating failed")
 	}
 
@@ -65,6 +67,10 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 	m.p.Println("")
 	spent := time.Since(started).Seconds()
 	m.p.Println(fmt.Sprintf("%.4f", spent), "seconds")
+
+	if closeErr := m.db.Close(); closeErr != nil {
+		return errors.Annotate(closeErr, "closing database connection failed")
+	}
 
 	return nil
 }

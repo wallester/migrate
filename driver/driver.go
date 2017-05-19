@@ -12,5 +12,5 @@ type Driver interface {
 	CreateMigrationsTable(ctx context.Context) error
 	SelectAllMigrations(ctx context.Context) (map[int64]bool, error)
 	ApplyMigrations(ctx context.Context, files []file.File, up bool) error
-	Close()
+	Close() error
 }

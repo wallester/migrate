@@ -45,6 +45,8 @@ func (m *Mock) ApplyMigrations(ctx context.Context, files []file.File, up bool) 
 }
 
 // Close is a mock method
-func (m *Mock) Close() {
-	m.Called()
+func (m *Mock) Close() error {
+	args := m.Called()
+
+	return args.Error(0)
 }
