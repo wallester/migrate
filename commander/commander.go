@@ -5,6 +5,7 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
 )
@@ -51,7 +52,7 @@ func (cmd *commander) Up(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, true, args.steps); err != nil {
+	if err := cmd.m.Migrate(args.path, args.url, direction.Up, args.steps); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
 
@@ -65,7 +66,7 @@ func (cmd *commander) Down(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, false, args.steps); err != nil {
+	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
 

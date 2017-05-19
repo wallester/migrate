@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/juju/errors"
+	"github.com/wallester/migrate/direction"
 )
 
 // File represents a migration file
@@ -48,11 +49,6 @@ func (a ByBase) Less(i, j int) bool {
 	return a[i].Base < a[j].Base
 }
 
-var filePrefix = map[bool]string{
-	true:  "up",
-	false: "down",
-}
-
 // FindByVersion finds a file from list by version
 func FindByVersion(version int64, files []File) *File {
 	for _, file := range files {
@@ -62,6 +58,11 @@ func FindByVersion(version int64, files []File) *File {
 	}
 
 	return nil
+}
+
+var filePrefix = map[bool]string{
+	direction.Up:   "up",
+	direction.Down: "down",
 }
 
 // ListFiles lists migration files on a given path

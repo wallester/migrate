@@ -8,6 +8,7 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/mgutz/ansi"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/printer"
@@ -20,21 +21,21 @@ type Migrator interface {
 }
 
 type migrator struct {
-	db driver.Driver
-	p  printer.Printer
+	db     driver.Driver
+	output printer.Printer
 }
 
 // New returns new instance
-func New(db driver.Driver, p printer.Printer) Migrator {
+func New(db driver.Driver, output printer.Printer) Migrator {
 	return &migrator{
-		db: db,
-		p:  p,
+		db:     db,
+		output: output,
 	}
 }
 
 var printPrefix = map[bool]string{
-	true:  ansi.Green + ">" + ansi.Reset,
-	false: ansi.Red + "<" + ansi.Reset,
+	direction.Up:   ansi.Green + ">" + ansi.Reset,
+	direction.Down: ansi.Red + "<" + ansi.Reset,
 }
 
 // Migrate migrates up or down
@@ -61,12 +62,12 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 	}
 
 	for _, file := range migratedFiles {
-		m.p.Println(printPrefix[up], file.Base)
+		m.output.Println(printPrefix[up], file.Base)
 	}
 
-	m.p.Println("")
+	m.output.Println("")
 	spent := time.Since(started).Seconds()
-	m.p.Println(fmt.Sprintf("%.4f", spent), "seconds")
+	m.output.Println(fmt.Sprintf("%.4f", spent), "seconds")
 
 	if closeErr := m.db.Close(); closeErr != nil {
 		return errors.Annotate(closeErr, "closing database connection failed")
@@ -136,9 +137,9 @@ func (m *migrator) Create(name string, path string) (*file.Pair, error) {
 		return nil, errors.Annotate(err, "writing down migration file failed")
 	}
 
-	m.p.Println("Version", version, "migration files created in", path)
-	m.p.Println(up.Base)
-	m.p.Println(down.Base)
+	m.output.Println("Version", version, "migration files created in", path)
+	m.output.Println(up.Base)
+	m.output.Println(down.Base)
 
 	return &file.Pair{
 		Up:   up,

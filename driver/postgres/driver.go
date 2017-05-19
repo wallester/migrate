@@ -6,6 +6,7 @@ import (
 
 	"github.com/juju/errors"
 	_ "github.com/lib/pq" // import driver
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 )
@@ -84,8 +85,8 @@ func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
 }
 
 var applyMigrationSQL = map[bool]string{
-	true:  "INSERT INTO schema_migrations(version) VALUES($1)",
-	false: "DELETE FROM schema_migrations WHERE version = $1",
+	direction.Up:   "INSERT INTO schema_migrations(version) VALUES($1)",
+	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
 }
 
 // ApplyMigrations applies migrations to database
