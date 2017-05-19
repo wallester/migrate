@@ -172,7 +172,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.Nil(errors.Cause(err))
-	suite.True(suite.output.Contains("1494538317_add-phone-number-to-users.up.sql"))
+	suite.True(suite.output.Contains("1494538317_add_phone_number_to_users.up.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -229,7 +229,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.Nil(errors.Cause(err))
-	suite.True(suite.output.Contains("1494538407_replace-user-phone-with-email.down.sql"))
+	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.down.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -284,7 +284,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.Nil(errors.Cause(err))
-	suite.True(suite.output.Contains("1494538273_create-table-users.up.sql"))
+	suite.True(suite.output.Contains("1494538273_create_table_users.up.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -315,6 +315,6 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.Nil(errors.Cause(err))
-	suite.True(suite.output.Contains("1494538407_replace-user-phone-with-email.down.sql"))
+	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.down.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
