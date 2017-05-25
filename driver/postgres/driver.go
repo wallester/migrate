@@ -98,15 +98,27 @@ func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up b
 
 	for _, file := range files {
 		if _, err := tx.ExecContext(ctx, file.SQL); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return errors.Annotate(err, "rolling back transaction failed")
+			}
+
 			return errors.Annotate(err, "executing migration failed")
 		}
 
 		if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], file.Version); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return errors.Annotate(err, "rolling back transaction failed")
+			}
+
 			return errors.Annotate(err, "executing migration failed")
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return errors.Annotate(err, "rolling back transaction failed")
+		}
+
 		return errors.Annotate(err, "committing migrations failed")
 	}
 
