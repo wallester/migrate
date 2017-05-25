@@ -60,14 +60,14 @@ func FindByVersion(version int64, files []File) *File {
 	return nil
 }
 
-var filePrefix = map[bool]string{
+var fileSuffix = map[bool]string{
 	direction.Up:   "up",
 	direction.Down: "down",
 }
 
 // ListFiles lists migration files on a given path
 func ListFiles(path string, up bool) ([]File, error) {
-	files, err := filepath.Glob(filepath.Join(path, "*_*."+filePrefix[up]+".sql"))
+	files, err := filepath.Glob(filepath.Join(path, "*_*."+fileSuffix[up]+".sql"))
 	if err != nil {
 		return nil, errors.Annotate(err, "getting migration files failed")
 	}
