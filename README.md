@@ -1,4 +1,6 @@
 # migrate
+[![Travis](https://travis-ci.org/wallester/migrate.svg?branch=master)](https://travis-ci.org/wallester/migrate)
+
 Command line tool for PostgreSQL migrations 
 
 ## Features
