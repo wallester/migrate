@@ -1,5 +1,6 @@
 # migrate
 [![Travis](https://travis-ci.org/wallester/migrate.svg?branch=master)](https://travis-ci.org/wallester/migrate)
+[![Go Report Card](https://goreportcard.com/badge/github.com/wallester/migrate)](https://goreportcard.com/report/github.com/wallester/migrate)
 
 Command line tool for PostgreSQL migrations 
 
