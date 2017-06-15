@@ -5,9 +5,7 @@ go:
   - tip
 
 install:
-  go get -u github.com/alecthomas/gometalinter
-  gometalinter --install
+  go get -u github.com/alecthomas/gometalinter && gometalinter --install
 
 script:
-  make test
-  make lint
+  make test lint
