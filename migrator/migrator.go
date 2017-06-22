@@ -16,7 +16,7 @@ import (
 
 // Migrator represents possible migration actions
 type Migrator interface {
-	Migrate(path string, url string, up bool, steps int) error
+	Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error
 	Create(name string, path string) (*file.Pair, error)
 }
 
@@ -39,7 +39,7 @@ var printPrefix = map[bool]string{
 }
 
 // Migrate migrates up or down
-func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
+func (m *migrator) Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(path, up)
@@ -52,7 +52,7 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
-	migratedFiles, err := m.applyMigrations(files, up, steps)
+	migratedFiles, err := m.applyMigrations(files, up, steps, timeoutSeconds)
 	if err != nil {
 		if closeErr := m.db.Close(); closeErr != nil {
 			return errors.Annotate(closeErr, "closing database connection failed")
@@ -76,10 +76,8 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int) error {
 	return nil
 }
 
-const timeoutSeconds = 1
-
-func (m *migrator) applyMigrations(files []file.File, up bool, steps int) ([]file.File, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutSeconds*time.Second)
+func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeoutSeconds int) ([]file.File, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
 
 	if err := m.db.CreateMigrationsTable(ctx); err != nil {

@@ -22,6 +22,7 @@ func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 	assert.NotNil(t, app.Flags)
 	assert.True(t, hasFlag("path", app.Flags))
 	assert.True(t, hasFlag("url", app.Flags))
+	assert.True(t, hasFlag("timeout", app.Flags))
 }
 
 func hasCommand(name string, commands []cli.Command) bool {
