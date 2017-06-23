@@ -10,6 +10,8 @@ const (
 	FlagURL = "url"
 	// FlagPath represents migrations path
 	FlagPath = "path"
+	// FlagTimeout represents execution timeout in seconds
+	FlagTimeout = "timeout"
 )
 
 var (
@@ -24,6 +26,12 @@ var (
 		Name:   FlagPath,
 		Usage:  "migrations folder, defaults to current working directory",
 		EnvVar: "MIGRATE_PATH",
+	}
+	// Timeout represents a cli flag
+	Timeout = cli.StringFlag{
+		Name:   FlagTimeout,
+		Usage:  "execution timeout in seconds, defaults to 1 second",
+		EnvVar: "MIGRATE_TIMEOUT",
 	}
 )
 
@@ -44,4 +52,9 @@ func Get(c *cli.Context, name string) string {
 // NewRequiredFlagError returns new required flag error
 func NewRequiredFlagError(name string) error {
 	return errors.New("please specify " + name)
+}
+
+// NewWrongFormatFlagError returns new wrong format flag error
+func NewWrongFormatFlagError(name string) error {
+	return errors.New("parsing " + name + " failed")
 }

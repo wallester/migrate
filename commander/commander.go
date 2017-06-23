@@ -52,7 +52,7 @@ func (cmd *commander) Up(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, direction.Up, args.steps); err != nil {
+	if err := cmd.m.Migrate(args.path, args.url, direction.Up, args.steps, args.timeoutSeconds); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
 
@@ -66,7 +66,7 @@ func (cmd *commander) Down(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps); err != nil {
+	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps, args.timeoutSeconds); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
 
@@ -74,9 +74,10 @@ func (cmd *commander) Down(c *cli.Context) error {
 }
 
 type migrateArguments struct {
-	path  string
-	url   string
-	steps int
+	path           string
+	url            string
+	timeoutSeconds int
+	steps          int
 }
 
 func parseMigrateArguments(c *cli.Context) (*migrateArguments, error) {
@@ -90,20 +91,33 @@ func parseMigrateArguments(c *cli.Context) (*migrateArguments, error) {
 		return nil, flag.NewRequiredFlagError(flag.FlagURL)
 	}
 
+	var timeoutSeconds int
+	s := flag.Get(c, flag.FlagTimeout)
+	if s == "" {
+		timeoutSeconds = 1
+	} else {
+		var err error
+		timeoutSeconds, err = strconv.Atoi(s)
+		if err != nil {
+			return nil, flag.NewWrongFormatFlagError(flag.FlagTimeout)
+		}
+	}
+
 	var steps int
-	s := c.Args().First()
+	s = c.Args().First()
 	if s != "" {
 		n, err := strconv.Atoi(s)
 		if err != nil {
-			return nil, errors.Annotate(err, "parsing <n> failed")
+			return nil, flag.NewWrongFormatFlagError("<n>")
 		}
 
 		steps = n
 	}
 
 	return &migrateArguments{
-		path:  path,
-		url:   url,
-		steps: steps,
+		path:           path,
+		url:            url,
+		timeoutSeconds: timeoutSeconds,
+		steps:          steps,
 	}, nil
 }

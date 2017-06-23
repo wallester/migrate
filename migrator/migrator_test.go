@@ -57,7 +57,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -70,7 +70,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 	suite.driverMock.On("Open", "connectionurl").Return(suite.expectedErr).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -86,7 +86,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -103,7 +103,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -136,7 +136,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -167,7 +167,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -192,7 +192,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrations
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -224,7 +224,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -279,7 +279,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 1, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -310,7 +310,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 1, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())

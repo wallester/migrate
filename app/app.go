@@ -16,9 +16,9 @@ func New() *cli.App {
 	app := cli.NewApp()
 	app.Name = "migrate"
 	app.Usage = "Command line tool for PostgreSQL migrations"
-	app.Version = "1.0.0"
+	app.Version = "1.0.1"
 	app.Commands = []cli.Command{
-		cli.Command{
+		{
 			Name:      "create",
 			Usage:     "Create a new migration",
 			ArgsUsage: "<name>",
@@ -27,7 +27,7 @@ func New() *cli.App {
 				flag.Path,
 			},
 		},
-		cli.Command{
+		{
 			Name:      "up",
 			Usage:     "Apply <n> or all up migrations",
 			Action:    cmd.Up,
@@ -35,9 +35,10 @@ func New() *cli.App {
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,
+				flag.Timeout,
 			},
 		},
-		cli.Command{
+		{
 			Name:      "down",
 			Usage:     "Apply <n> or all down migrations",
 			Action:    cmd.Down,
@@ -45,12 +46,14 @@ func New() *cli.App {
 			Flags: []cli.Flag{
 				flag.Path,
 				flag.URL,
+				flag.Timeout,
 			},
 		},
 	}
 	app.Flags = []cli.Flag{
 		flag.Path,
 		flag.URL,
+		flag.Timeout,
 	}
 	return app
 }

@@ -17,6 +17,15 @@ func Test_NewRequiredFlagError_ReturnsError_InCaseOfSuccess(t *testing.T) {
 	assert.EqualError(t, err, "please specify something")
 }
 
+func Test_NewWrongFormatFlagError_ReturnsError_InCaseOfSuccess(t *testing.T) {
+	// Act
+	err := NewWrongFormatFlagError("something")
+
+	// Assert
+	assert.NotNil(t, err)
+	assert.EqualError(t, err, "parsing something failed")
+}
+
 func Test_Get_ReturnsFlagValue_InCaseOfFlagSet(t *testing.T) {
 	// Arrange
 	set := flag.NewFlagSet("test", 0)
