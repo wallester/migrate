@@ -75,17 +75,40 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, er
 func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
 	if _, err := db.connection.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations(
-			version bigint not null primary key
+			version bigint not null primary key,
+			applied_at timestamp without time zone
 		)
 	`); err != nil {
 		return errors.Annotate(err, "creating schema_migrations table failed")
+	}
+
+	var appliedAtExists bool
+	if err := db.connection.QueryRowContext(ctx, `
+		SELECT
+			COUNT(1) > 0
+		FROM
+			information_schema.columns
+		WHERE
+			table_name = 'schema_migrations'
+		AND
+			column_name = 'applied_at'
+	`).Scan(&appliedAtExists); err != nil {
+		return errors.Annotate(err, "checking if applied_at timestamp exists failed")
+	}
+
+	if !appliedAtExists {
+		if _, err := db.connection.ExecContext(ctx, `
+			ALTER TABLE schema_migrations ADD COLUMN applied_at timestamp without time zone
+		`); err != nil {
+			return errors.Annotate(err, "adding applied_at timestamp failed")
+		}
 	}
 
 	return nil
 }
 
 var applyMigrationSQL = map[bool]string{
-	direction.Up:   "INSERT INTO schema_migrations(version) VALUES($1)",
+	direction.Up:   "INSERT INTO schema_migrations(version, applied_at) VALUES($1, NOW() at time zone 'utc')",
 	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
 }
 
