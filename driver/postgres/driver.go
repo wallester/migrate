@@ -84,14 +84,16 @@ func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
 
 	var appliedAtExists bool
 	if err := db.connection.QueryRowContext(ctx, `
-		SELECT
-			COUNT(1) > 0
-		FROM
-			information_schema.columns
-		WHERE
-			table_name = 'schema_migrations'
-		AND
-			column_name = 'applied_at'
+		SELECT EXISTS (
+			SELECT
+				1
+			FROM
+				information_schema.columns
+			WHERE
+				table_name = 'schema_migrations'
+			AND
+				column_name = 'applied_at'
+		)
 	`).Scan(&appliedAtExists); err != nil {
 		return errors.Annotate(err, "checking if applied_at timestamp exists failed")
 	}
