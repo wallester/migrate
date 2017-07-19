@@ -6,7 +6,7 @@ fmt:
 	@go fmt ./...
 
 lint:
-	@gometalinter ./... --deadline=5m --vendor --enable misspell --enable goimports --disable aligncheck --concurrency 4
+	@gometalinter ./... --config=.gometalinter
 
 test:
 	@go list ./... | grep -v vendor | xargs go test
