@@ -9,7 +9,7 @@ lint:
 	@gometalinter.v1 ./... --config=.gometalinter
 
 test:
-	@go list ./... | grep -v vendor | xargs go test
+	@go list ./... | xargs go test
 
 install:
 	@go install
