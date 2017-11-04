@@ -5,8 +5,8 @@ go:
   - tip
 
 install:
-  - go get -u gopkg.in/alecthomas/gometalinter.v1
-  - gometalinter.v1 --install
+  - go get -u github.com/alecthomas/gometalinter
+  - gometalinter --install
 
 script:
   - make install
