@@ -5,14 +5,14 @@ build: fmt
 fmt:
 	@go fmt ./...
 
-lint:
+lint: install
 	@gometalinter.v1 ./... --config=.gometalinter
 
 test:
 	@go list ./... | xargs go test
 
 install:
-	@go install
+	@go install ./...
 
 cov:
 	@go test -test.covermode=count -test.coverprofile coverage.cov
