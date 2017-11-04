@@ -5,14 +5,14 @@ build: fmt
 fmt:
 	@go fmt ./...
 
-lint:
-	@gometalinter.v1 ./... --config=.gometalinter
+lint: install
+	@gometalinter ./... --config=.gometalinter
 
 test:
 	@go list ./... | xargs go test
 
 install:
-	@go install
+	@go install ./...
 
 cov:
 	@go test -test.covermode=count -test.coverprofile coverage.cov
@@ -20,4 +20,4 @@ cov:
 
 tools:
 	@echo "govendor" && go get -u github.com/kardianos/govendor
-	@echo "gometalinter.v1" && go get -u gopkg.in/alecthomas/gometalinter.v1
+	@echo "gometalinter" && go get -u github.com/alecthomas/gometalinter

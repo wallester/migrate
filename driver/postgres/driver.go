@@ -131,11 +131,11 @@ func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up b
 
 	for _, file := range files {
 		if _, err := tx.ExecContext(ctx, file.SQL); err != nil {
-			return rollback(errors.Annotate(err, "executing migration failed"))
+			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
 		}
 
 		if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], file.Version); err != nil {
-			return rollback(errors.Annotate(err, "executing migration failed"))
+			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
 		}
 	}
 
