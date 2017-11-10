@@ -119,15 +119,15 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 	// to be migrated up.
 	migrations := map[int64]bool{
 		1494538273: true,
-		1494538317: false,
-		1494538407: true,
+		1494538317: true,
+		1494538407: false,
 	}
 	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
 	needsMigration := []file.File{
-		*file.FindByVersion(1494538317, files),
+		*file.FindByVersion(1494538407, files),
 	}
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
@@ -150,15 +150,15 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	// to be migrated up.
 	migrations := map[int64]bool{
 		1494538273: true,
-		1494538317: false,
-		1494538407: true,
+		1494538317: true,
+		1494538407: false,
 	}
 	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
 	needsMigration := []file.File{
-		*file.FindByVersion(1494538317, files),
+		*file.FindByVersion(1494538407, files),
 	}
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
@@ -172,7 +172,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.Nil(errors.Cause(err))
-	suite.True(suite.output.Contains("1494538317_add_phone_number_to_users.up.sql"))
+	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.up.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -317,4 +317,28 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	suite.Nil(errors.Cause(err))
 	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.down.sql"))
 	suite.True(suite.output.Contains("seconds"))
+}
+
+func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOlderThanAlreadyMigratedOne() {
+	// Arrange
+	// The following versions are from ../testdata.
+	// We'll mark one of them as not migrated yet, meaning it needs
+	// to be migrated up.
+	migrations := map[int64]bool{
+		1494538273: true,
+		1494538317: false,
+		1494538407: true,
+	}
+	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
+	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
+	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
+	suite.driverMock.On("Close").Return(nil).Once()
+
+	// Act
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+
+	// Assert
+	suite.driverMock.AssertExpectations(suite.T())
+	suite.NotNil(errors.Cause(err))
+	suite.EqualError(errors.Cause(err), "cannot migrate up 1494538317_add_phone_number_to_users.up.sql, because it's older than already migrated 1494538407_replace_user_phone_with_email.up.sql")
 }

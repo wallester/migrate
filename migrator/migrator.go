@@ -89,7 +89,10 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration := chooseMigrations(files, alreadyMigrated, up, steps)
+	needsMigration, err := chooseMigrations(files, alreadyMigrated, up, steps)
+	if err != nil {
+		return nil, errors.Annotate(err, "choosing migrations failed")
+	}
 
 	if len(needsMigration) > 0 {
 		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
@@ -100,19 +103,37 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) []file.File {
-	var needsMigration []file.File
-	for _, file := range files {
-		if (up && !alreadyMigrated[file.Version]) || (!up && alreadyMigrated[file.Version]) {
-			needsMigration = append(needsMigration, file)
+func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) ([]file.File, error) {
+	maxAlreadyMigrated := int64(0)
+	for version, isMigrated := range alreadyMigrated {
+		if isMigrated && version > maxAlreadyMigrated {
+			maxAlreadyMigrated = version
 		}
+	}
+
+	var needsMigration []file.File
+	for _, f := range files {
+		if up && alreadyMigrated[f.Version] {
+			continue
+		}
+
+		if !up && !alreadyMigrated[f.Version] {
+			continue
+		}
+
+		if up && maxAlreadyMigrated > f.Version {
+			offendingFile := file.FindByVersion(maxAlreadyMigrated, files)
+			return nil, errors.New(fmt.Sprintf("cannot migrate up %s, because it's older than already migrated %s", f.Base, offendingFile.Base))
+		}
+
+		needsMigration = append(needsMigration, f)
 	}
 
 	if steps > 0 && len(needsMigration) >= steps {
 		needsMigration = needsMigration[:steps]
 	}
 
-	return needsMigration
+	return needsMigration, nil
 }
 
 func (m *migrator) Create(name string, path string) (*file.Pair, error) {
