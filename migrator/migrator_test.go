@@ -340,5 +340,5 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOld
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
 	suite.NotNil(errors.Cause(err))
-	suite.EqualError(errors.Cause(err), "cannot migrate up 1494538317_add_phone_number_to_users.up.sql, because it's older than already migrated 1494538407_replace_user_phone_with_email.up.sql")
+	suite.EqualError(errors.Cause(err), "cannot migrate up 1494538317_add_phone_number_to_users.up.sql, because it's older than already migrated version 1494538407")
 }

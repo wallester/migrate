@@ -128,8 +128,7 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool
 		}
 
 		if up && maxAlreadyMigrated > f.Version {
-			offendingFile := file.FindByVersion(maxAlreadyMigrated, files)
-			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated %s", f.Base, offendingFile.Base)
+			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxAlreadyMigrated)
 		}
 
 		needsMigration = append(needsMigration, f)
