@@ -103,13 +103,19 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) ([]file.File, error) {
-	maxAlreadyMigrated := int64(0)
+func maxVersion(alreadyMigrated map[int64]bool) int64 {
+	result := int64(0)
 	for version, isMigrated := range alreadyMigrated {
-		if isMigrated && version > maxAlreadyMigrated {
-			maxAlreadyMigrated = version
+		if isMigrated && version > result {
+			result = version
 		}
 	}
+
+	return result
+}
+
+func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) ([]file.File, error) {
+	maxAlreadyMigrated := maxVersion(alreadyMigrated)
 
 	var needsMigration []file.File
 	for _, f := range files {
