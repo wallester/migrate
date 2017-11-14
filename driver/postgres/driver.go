@@ -9,6 +9,7 @@ import (
 	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
+	"github.com/wallester/migrate/version"
 )
 
 type postgres struct {
@@ -42,7 +43,7 @@ func (db *postgres) Close() error {
 }
 
 // SelectAllMigrations selects existing migrations
-func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, error) {
+func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, error) {
 	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
@@ -50,7 +51,8 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, er
 		return nil, errors.Annotate(err, "selecting existing migration versions failed")
 	}
 
-	migrated := make(map[int64]bool)
+	var exists struct{}
+	migrated := make(version.Versions)
 	for rows.Next() {
 		var version int64
 		if err := rows.Scan(&version); err != nil {
@@ -61,7 +63,7 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (map[int64]bool, er
 			return nil, errors.Annotate(err, "scanning version failed")
 		}
 
-		migrated[version] = true
+		migrated[version] = exists
 	}
 
 	if closeErr := rows.Close(); closeErr != nil {

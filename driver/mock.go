@@ -5,6 +5,7 @@ import (
 
 	"github.com/stretchr/testify/mock"
 	"github.com/wallester/migrate/file"
+	"github.com/wallester/migrate/version"
 )
 
 // Mock is mock object for Driver
@@ -27,11 +28,11 @@ func (m *Mock) CreateMigrationsTable(ctx context.Context) error {
 }
 
 // SelectAllMigrations is a mock method
-func (m *Mock) SelectAllMigrations(ctx context.Context) (map[int64]bool, error) {
+func (m *Mock) SelectAllMigrations(ctx context.Context) (version.Versions, error) {
 	args := m.Called(ctx)
 
 	if args.Get(0) != nil {
-		return args.Get(0).(map[int64]bool), args.Error(1)
+		return args.Get(0).(version.Versions), args.Error(1)
 	}
 
 	return nil, args.Error(1)

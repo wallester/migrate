@@ -4,13 +4,14 @@ import (
 	"context"
 
 	"github.com/wallester/migrate/file"
+	"github.com/wallester/migrate/version"
 )
 
 // Driver represents database driver
 type Driver interface {
 	Open(url string) error
 	CreateMigrationsTable(ctx context.Context) error
-	SelectAllMigrations(ctx context.Context) (map[int64]bool, error)
+	SelectAllMigrations(ctx context.Context) (version.Versions, error)
 	ApplyMigrations(ctx context.Context, files []file.File, up bool) error
 	Close() error
 }
