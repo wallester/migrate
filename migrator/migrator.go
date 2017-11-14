@@ -115,7 +115,7 @@ func maxVersion(alreadyMigrated map[int64]bool) int64 {
 }
 
 func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) ([]file.File, error) {
-	maxAlreadyMigrated := maxVersion(alreadyMigrated)
+	maxMigratedVersion := maxVersion(alreadyMigrated)
 
 	var needsMigration []file.File
 	for _, f := range files {
@@ -127,8 +127,8 @@ func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool
 			continue
 		}
 
-		if up && maxAlreadyMigrated > f.Version {
-			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxAlreadyMigrated)
+		if up && maxMigratedVersion > f.Version {
+			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
 		}
 
 		needsMigration = append(needsMigration, f)
