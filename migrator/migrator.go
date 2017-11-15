@@ -12,6 +12,7 @@ import (
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/printer"
+	"github.com/wallester/migrate/version"
 )
 
 // Migrator represents possible migration actions
@@ -89,7 +90,10 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration := chooseMigrations(files, alreadyMigrated, up, steps)
+	needsMigration, err := chooseMigrations(files, alreadyMigrated, up, steps)
+	if err != nil {
+		return nil, errors.Annotate(err, "choosing migrations failed")
+	}
 
 	if len(needsMigration) > 0 {
 		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
@@ -100,19 +104,33 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated map[int64]bool, up bool, steps int) []file.File {
+func chooseMigrations(files []file.File, alreadyMigrated version.Versions, up bool, steps int) ([]file.File, error) {
+	maxMigratedVersion := alreadyMigrated.Max()
+
 	var needsMigration []file.File
-	for _, file := range files {
-		if (up && !alreadyMigrated[file.Version]) || (!up && alreadyMigrated[file.Version]) {
-			needsMigration = append(needsMigration, file)
+	for _, f := range files {
+		_, isMigrated := alreadyMigrated[f.Version]
+
+		if up && isMigrated {
+			continue
 		}
+
+		if !up && !isMigrated {
+			continue
+		}
+
+		if up && maxMigratedVersion > f.Version {
+			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
+		}
+
+		needsMigration = append(needsMigration, f)
 	}
 
 	if steps > 0 && len(needsMigration) >= steps {
 		needsMigration = needsMigration[:steps]
 	}
 
-	return needsMigration
+	return needsMigration, nil
 }
 
 func (m *migrator) Create(name string, path string) (*file.Pair, error) {
