@@ -71,9 +71,9 @@ func ListFiles(path string, dir direction.Direction) ([]File, error) {
 	for _, file := range files {
 		base := filepath.Base(file)
 
-		version, err := strconv.ParseInt(strings.Split(base, "_")[0], 10, 64)
+		version, err := version(base)
 		if err != nil {
-			return nil, errors.Annotate(err, "parsing version failed")
+			return nil, errors.Annotatef(err, "getting version of %s migration failed", base)
 		}
 
 		b, err := ioutil.ReadFile(file)
@@ -83,7 +83,7 @@ func ListFiles(path string, dir direction.Direction) ([]File, error) {
 
 		migrations = append(migrations, File{
 			Base:    base,
-			Version: version,
+			Version: *version,
 			SQL:     string(b),
 		})
 	}
@@ -95,4 +95,14 @@ func ListFiles(path string, dir direction.Direction) ([]File, error) {
 	}
 
 	return migrations, nil
+}
+
+// version returns version of migration file
+func version(base string) (*int64, error) {
+	version, err := strconv.ParseInt(strings.Split(base, "_")[0], 10, 64)
+	if err != nil {
+		return nil, errors.Annotate(err, "parsing version failed")
+	}
+
+	return &version, nil
 }
