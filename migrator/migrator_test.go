@@ -9,6 +9,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/printer"
@@ -59,7 +60,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -72,7 +73,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 	suite.driverMock.On("Open", "connectionurl").Return(suite.expectedErr).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -88,7 +89,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -105,7 +106,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -124,7 +125,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 		1494538273: exists,
 		1494538317: exists,
 	}
-	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), direction.Up)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
@@ -134,11 +135,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, true).Return(suite.expectedErr).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(suite.expectedErr).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -155,7 +156,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 		1494538273: exists,
 		1494538317: exists,
 	}
-	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), direction.Up)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
@@ -165,11 +166,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, true).Return(nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -190,7 +191,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrations
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Down, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -207,7 +208,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	migrations := version.Versions{
 		1494538407: exists,
 	}
-	files, err := file.ListFiles(filepath.Join("..", "testdata"), false)
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), direction.Down)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
@@ -217,11 +218,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, false).Return(nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Down).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 0, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Down, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -258,7 +259,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	// Arrange
 	// The following versions are from ../testdata.
 	migrations := make(version.Versions)
-	files, err := file.ListFiles(filepath.Join("..", "testdata"), true)
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), direction.Up)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
@@ -268,11 +269,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, true).Return(nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 1, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 1, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -290,7 +291,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 		1494538317: exists,
 		1494538407: exists,
 	}
-	files, err := file.ListFiles(filepath.Join("..", "testdata"), false)
+	files, err := file.ListFiles(filepath.Join("..", "testdata"), direction.Down)
 	if err != nil {
 		suite.FailNow(err.Error())
 	}
@@ -300,11 +301,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, false).Return(nil).Once()
+	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Down).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", false, 1, 1)
+	err = suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Down, 1, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
@@ -329,7 +330,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOld
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	// Act
-	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", true, 0, 1)
+	err := suite.instance.Migrate(filepath.Join("..", "testdata"), "connectionurl", direction.Up, 0, 1)
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())

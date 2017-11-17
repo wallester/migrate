@@ -17,7 +17,7 @@ import (
 
 // Migrator represents possible migration actions
 type Migrator interface {
-	Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error
+	Migrate(path string, url string, dir direction.Direction, steps int, timeoutSeconds int) error
 	Create(name string, path string) (*file.Pair, error)
 }
 
@@ -34,16 +34,16 @@ func New(db driver.Driver, output printer.Printer) Migrator {
 	}
 }
 
-var printPrefix = map[bool]string{
+var printPrefix = map[direction.Direction]string{
 	direction.Up:   ansi.Green + ">" + ansi.Reset,
 	direction.Down: ansi.Red + "<" + ansi.Reset,
 }
 
 // Migrate migrates up or down
-func (m *migrator) Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error {
+func (m *migrator) Migrate(path string, url string, dir direction.Direction, steps int, timeoutSeconds int) error {
 	started := time.Now()
 
-	files, err := file.ListFiles(path, up)
+	files, err := file.ListFiles(path, dir)
 	if err != nil {
 		return errors.Annotate(err, "listing migration files failed")
 	}
@@ -53,7 +53,7 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int, timeoutS
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
-	migratedFiles, err := m.applyMigrations(files, up, steps, timeoutSeconds)
+	migratedFiles, err := m.applyMigrations(files, dir, steps, timeoutSeconds)
 	if err != nil {
 		if closeErr := m.db.Close(); closeErr != nil {
 			return errors.Annotate(closeErr, "closing database connection failed")
@@ -63,7 +63,7 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int, timeoutS
 	}
 
 	for _, file := range migratedFiles {
-		m.output.Println(printPrefix[up], file.Base)
+		m.output.Println(printPrefix[dir], file.Base)
 	}
 
 	m.output.Println("")
@@ -77,7 +77,7 @@ func (m *migrator) Migrate(path string, url string, up bool, steps int, timeoutS
 	return nil
 }
 
-func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeoutSeconds int) ([]file.File, error) {
+func (m *migrator) applyMigrations(files []file.File, dir direction.Direction, steps int, timeoutSeconds int) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
 	defer cancel()
 
@@ -90,13 +90,13 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration, err := chooseMigrations(files, alreadyMigrated, up, steps)
+	needsMigration, err := chooseMigrations(files, alreadyMigrated, dir, steps)
 	if err != nil {
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
 	if len(needsMigration) > 0 {
-		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
+		if err := m.db.ApplyMigrations(ctx, needsMigration, dir); err != nil {
 			return nil, errors.Annotate(err, "applying migrations failed")
 		}
 	}
@@ -104,22 +104,22 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated version.Versions, up bool, steps int) ([]file.File, error) {
+func chooseMigrations(files []file.File, alreadyMigrated version.Versions, dir direction.Direction, steps int) ([]file.File, error) {
 	maxMigratedVersion := alreadyMigrated.Max()
 
 	var needsMigration []file.File
 	for _, f := range files {
 		_, isMigrated := alreadyMigrated[f.Version]
 
-		if up && isMigrated {
+		if dir == direction.Up && isMigrated {
 			continue
 		}
 
-		if !up && !isMigrated {
+		if dir == direction.Down && !isMigrated {
 			continue
 		}
 
-		if up && maxMigratedVersion > f.Version {
+		if dir == direction.Up && maxMigratedVersion > f.Version {
 			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
 		}
 

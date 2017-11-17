@@ -47,27 +47,22 @@ func (cmd *commander) Create(c *cli.Context) error {
 
 // Up migrates up
 func (cmd *commander) Up(c *cli.Context) error {
-	args, err := parseMigrateArguments(c)
-	if err != nil {
-		return errors.Annotate(err, "parsing parameters failed")
-	}
-
-	if err := cmd.m.Migrate(args.path, args.url, direction.Up, args.steps, args.timeoutSeconds); err != nil {
-		return errors.Annotate(err, "migrating up failed")
-	}
-
-	return nil
+	return migrate(cmd, c, direction.Up)
 }
 
 // Down migrates down
 func (cmd *commander) Down(c *cli.Context) error {
+	return migrate(cmd, c, direction.Down)
+}
+
+func migrate(cmd *commander, c *cli.Context, dir direction.Direction) error {
 	args, err := parseMigrateArguments(c)
 	if err != nil {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps, args.timeoutSeconds); err != nil {
-		return errors.Annotate(err, "migrating down failed")
+	if err := cmd.m.Migrate(args.path, args.url, dir, args.steps, args.timeoutSeconds); err != nil {
+		return errors.Annotatef(err, "migrating %s failed", dir)
 	}
 
 	return nil

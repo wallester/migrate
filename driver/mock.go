@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/version"
 )
@@ -39,8 +40,8 @@ func (m *Mock) SelectAllMigrations(ctx context.Context) (version.Versions, error
 }
 
 // ApplyMigrations is a mock method
-func (m *Mock) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
-	args := m.Called(ctx, files, up)
+func (m *Mock) ApplyMigrations(ctx context.Context, files []file.File, dir direction.Direction) error {
+	args := m.Called(ctx, files, dir)
 
 	return args.Error(0)
 }
