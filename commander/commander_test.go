@@ -109,7 +109,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingPath() {
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
-// nolint: dupl
 func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingURL() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
@@ -159,7 +158,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfInvalidArgument() {
 	suite.EqualError(errors.Cause(err), "parsing <n> failed")
 }
 
-// nolint: dupl
 func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
@@ -201,7 +199,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingPath() {
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
-// nolint: dupl
 func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingURL() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
@@ -234,7 +231,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMigratorError() {
 	suite.EqualError(err, "migrating down failed: failure")
 }
 
-// nolint: dupl
 func (suite *CommanderTestSuite) Test_Down_ReturnNil_InCaseOfSuccess() {
 	// Arrange
 	suite.flagSet.String("path", "", "")

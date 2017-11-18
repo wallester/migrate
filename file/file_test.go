@@ -8,7 +8,6 @@ import (
 	"github.com/wallester/migrate/direction"
 )
 
-// nolint: dupl
 func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	// Act
 	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Up)
@@ -29,8 +28,6 @@ func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	assert.Equal(t, int64(1494538407), files[2].Version)
 	assert.NotEmpty(t, files[2].SQL)
 }
-
-// nolint: dupl
 func Test_ListFiles_ReturnsDownMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	// Act
 	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Down)
