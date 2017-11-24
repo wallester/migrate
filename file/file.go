@@ -1,7 +1,6 @@
 package file
 
 import (
-	"fmt"
 	"io/ioutil"
 	"path/filepath"
 	"sort"
@@ -61,9 +60,14 @@ func FindByVersion(version int64, files []File) *File {
 	return nil
 }
 
+var fileSuffix = map[bool]string{
+	direction.Up:   "up",
+	direction.Down: "down",
+}
+
 // ListFiles lists migration files on a given path
-func ListFiles(path string, dir direction.Direction) ([]File, error) {
-	files, err := filepath.Glob(filepath.Join(path, fmt.Sprintf("*_*.%s.sql", dir)))
+func ListFiles(path string, up bool) ([]File, error) {
+	files, err := filepath.Glob(filepath.Join(path, "*_*."+fileSuffix[up]+".sql"))
 	if err != nil {
 		return nil, errors.Annotate(err, "getting migration files failed")
 	}
@@ -89,7 +93,7 @@ func ListFiles(path string, dir direction.Direction) ([]File, error) {
 		})
 	}
 
-	if dir == direction.Up {
+	if up {
 		sort.Sort(ByBase(migrations))
 	} else {
 		sort.Sort(sort.Reverse(ByBase(migrations)))

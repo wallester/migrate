@@ -2,7 +2,6 @@ package migrator
 
 import (
 	"github.com/stretchr/testify/mock"
-	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/file"
 )
 
@@ -12,8 +11,8 @@ type Mock struct {
 }
 
 // Migrate is a mock method
-func (m *Mock) Migrate(path string, url string, dir direction.Direction, steps int, timeoutSeconds int) error {
-	args := m.Called(path, url, dir, steps, timeoutSeconds)
+func (m *Mock) Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error {
+	args := m.Called(path, url, up, steps, timeoutSeconds)
 
 	return args.Error(0)
 }

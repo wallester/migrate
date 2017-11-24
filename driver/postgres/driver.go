@@ -111,13 +111,13 @@ func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
 	return nil
 }
 
-var applyMigrationSQL = map[direction.Direction]string{
+var applyMigrationSQL = map[bool]string{
 	direction.Up:   "INSERT INTO schema_migrations(version, applied_at) VALUES($1, NOW() at time zone 'utc')",
 	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
 }
 
 // ApplyMigrations applies migrations to database
-func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, dir direction.Direction) error {
+func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
 	tx, err := db.connection.Begin()
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
@@ -136,7 +136,7 @@ func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, dir 
 			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
 		}
 
-		if _, err := tx.ExecContext(ctx, applyMigrationSQL[dir], file.Version); err != nil {
+		if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], file.Version); err != nil {
 			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
 		}
 	}
