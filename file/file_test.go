@@ -5,11 +5,12 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/wallester/migrate/direction"
 )
 
 func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	// Act
-	files, err := ListFiles(filepath.Join("..", "testdata"), true)
+	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Up)
 
 	// Assert
 	assert.Nil(t, err)
@@ -27,10 +28,9 @@ func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	assert.Equal(t, int64(1494538407), files[2].Version)
 	assert.NotEmpty(t, files[2].SQL)
 }
-
 func Test_ListFiles_ReturnsDownMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	// Act
-	files, err := ListFiles(filepath.Join("..", "testdata"), false)
+	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Down)
 
 	// Assert
 	assert.Nil(t, err)

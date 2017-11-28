@@ -7,6 +7,7 @@ import (
 	"github.com/juju/errors"
 	"github.com/stretchr/testify/suite"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/migrator"
 )
@@ -14,7 +15,7 @@ import (
 type CommanderTestSuite struct {
 	suite.Suite
 	migratorMock *migrator.Mock
-	instance     Commander
+	commander    Commander
 	expectedErr  error
 	flagSet      *flag.FlagSet
 	ctx          *cli.Context
@@ -22,7 +23,7 @@ type CommanderTestSuite struct {
 
 func (suite *CommanderTestSuite) SetupTest() {
 	suite.migratorMock = &migrator.Mock{}
-	suite.instance = New(suite.migratorMock)
+	suite.commander = New(suite.migratorMock)
 	suite.expectedErr = errors.New("failure")
 	suite.flagSet = flag.NewFlagSet("test", 0)
 	suite.ctx = cli.NewContext(nil, suite.flagSet, nil)
@@ -45,7 +46,7 @@ func (suite *CommanderTestSuite) Test_New_ReturnsInstance_InCaseOfSuccess() {
 
 func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingArgument() {
 	// Act
-	err := suite.instance.Create(suite.ctx)
+	err := suite.commander.Create(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -59,7 +60,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingFlag() 
 	}
 
 	// Act
-	err := suite.instance.Create(suite.ctx)
+	err := suite.commander.Create(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -76,7 +77,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMigratorError(
 	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, suite.expectedErr).Once()
 
 	// Act
-	err := suite.instance.Create(suite.ctx)
+	err := suite.commander.Create(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -93,7 +94,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, nil).Once()
 
 	// Act
-	err := suite.instance.Create(suite.ctx)
+	err := suite.commander.Create(suite.ctx)
 
 	// Assert
 	suite.Nil(err)
@@ -101,7 +102,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 
 func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingPath() {
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -116,7 +117,7 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingURL() {
 	}
 
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -131,10 +132,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMigratorError() {
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "--timeout", "10"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true, 0, 10).Return(suite.expectedErr).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Up, 0, 10).Return(suite.expectedErr).Once()
 
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -150,7 +151,7 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfInvalidArgument() {
 	}
 
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -164,10 +165,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true, 0, 1).Return(nil).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Up, 0, 1).Return(nil).Once()
 
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.Nil(err)
@@ -180,10 +181,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfArgumentN() {
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "10"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", true, 10, 1).Return(nil).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Up, 10, 1).Return(nil).Once()
 
 	// Act
-	err := suite.instance.Up(suite.ctx)
+	err := suite.commander.Up(suite.ctx)
 
 	// Assert
 	suite.Nil(err)
@@ -191,7 +192,7 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfArgumentN() {
 
 func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingPath() {
 	// Act
-	err := suite.instance.Down(suite.ctx)
+	err := suite.commander.Down(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -206,7 +207,7 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingURL() {
 	}
 
 	// Act
-	err := suite.instance.Down(suite.ctx)
+	err := suite.commander.Down(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -220,10 +221,10 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMigratorError() {
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false, 0, 1).Return(suite.expectedErr).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 0, 1).Return(suite.expectedErr).Once()
 
 	// Act
-	err := suite.instance.Down(suite.ctx)
+	err := suite.commander.Down(suite.ctx)
 
 	// Assert
 	suite.NotNil(err)
@@ -237,10 +238,10 @@ func (suite *CommanderTestSuite) Test_Down_ReturnNil_InCaseOfSuccess() {
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", false, 0, 1).Return(nil).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 0, 1).Return(nil).Once()
 
 	// Act
-	err := suite.instance.Down(suite.ctx)
+	err := suite.commander.Down(suite.ctx)
 
 	// Assert
 	suite.Nil(err)

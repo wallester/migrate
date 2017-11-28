@@ -1,8 +1,8 @@
 package direction
 
 const (
-	// Up represents up migration
+	// Up represents up direction
 	Up = true
-	// Down represents down migration
+	// Down represents down direction
 	Down = false
 )
