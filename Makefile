@@ -6,7 +6,7 @@ fmt:
 	@go fmt ./...
 
 lint: install
-	@gometalinter ./... --config=.gometalinter
+	@gometalinter.v2 ./... --config=.gometalinter
 
 test:
 	@go list ./... | xargs go test
@@ -20,4 +20,4 @@ cov:
 
 tools:
 	@echo "govendor" && go get -u github.com/kardianos/govendor
-	@echo "gometalinter" && go get -u github.com/alecthomas/gometalinter
+	@echo "gometalinter.v2" && go get -u gopkg.in/alecthomas/gometalinter.v2
