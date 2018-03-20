@@ -40,7 +40,7 @@ func New() *cli.App {
 		},
 		{
 			Name:      "down",
-			Usage:     "Apply <n> or all down migrations",
+			Usage:     "Apply <n> down migration(s)",
 			Action:    cmd.Down,
 			ArgsUsage: "<n>",
 			Flags: []cli.Flag{
