@@ -64,7 +64,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsTo
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -77,7 +77,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.NotNil(err)
+	suite.Error(err)
 	suite.EqualError(err, "opening database connection failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -93,7 +93,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.NotNil(err)
+	suite.Error(err)
 	suite.EqualError(err, "migrating failed: creating migrations table failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -110,7 +110,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.NotNil(err)
+	suite.Error(err)
 	suite.EqualError(err, "migrating failed: selecting existing migrations failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -143,7 +143,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.NotNil(errors.Cause(err))
+	suite.Error(errors.Cause(err))
 }
 
 func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRun() {
@@ -174,7 +174,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.up.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
@@ -195,7 +195,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrations
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("seconds"))
 }
 
@@ -226,7 +226,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.down.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
@@ -239,7 +239,7 @@ func (suite *MigratorTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	pair, err := suite.instance.Create("create_table_invoices", path)
 
 	// Assert
-	suite.Nil(err)
+	suite.NoError(err)
 	suite.NotNil(pair)
 	defer remove(filepath.Join(path, pair.Up.Base))
 	defer remove(filepath.Join(path, pair.Down.Base))
@@ -277,7 +277,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("1494538273_create_table_users.up.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
@@ -309,7 +309,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Nil(errors.Cause(err))
+	suite.NoError(errors.Cause(err))
 	suite.True(suite.output.Contains("1494538407_replace_user_phone_with_email.down.sql"))
 	suite.True(suite.output.Contains("seconds"))
 }
@@ -334,6 +334,6 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOld
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.NotNil(errors.Cause(err))
+	suite.Error(errors.Cause(err))
 	suite.EqualError(errors.Cause(err), "cannot migrate up 1494538317_add_phone_number_to_users.up.sql, because it's older than already migrated version 1494538407")
 }

@@ -13,7 +13,7 @@ func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Up)
 
 	// Assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 3, len(files))
 
 	assert.Equal(t, "1494538273_create_table_users.up.sql", files[0].Base)
@@ -33,7 +33,7 @@ func Test_ListFiles_ReturnsDownMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Down)
 
 	// Assert
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 	assert.Equal(t, 3, len(files))
 
 	assert.Equal(t, "1494538407_replace_user_phone_with_email.down.sql", files[0].Base)
