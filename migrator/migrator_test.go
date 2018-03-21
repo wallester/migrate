@@ -77,7 +77,6 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Error(err)
 	suite.EqualError(err, "opening database connection failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -93,7 +92,6 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Error(err)
 	suite.EqualError(err, "migrating failed: creating migrations table failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -110,7 +108,6 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Error(err)
 	suite.EqualError(err, "migrating failed: selecting existing migrations failed: failure")
 	suite.Empty(suite.output.String())
 }
@@ -334,6 +331,5 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOld
 
 	// Assert
 	suite.driverMock.AssertExpectations(suite.T())
-	suite.Error(errors.Cause(err))
 	suite.EqualError(errors.Cause(err), "cannot migrate up 1494538317_add_phone_number_to_users.up.sql, because it's older than already migrated version 1494538407")
 }

@@ -49,7 +49,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingArgumen
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "please specify migration name")
 }
 
@@ -63,7 +62,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingFlag() 
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "please specify path")
 }
 
@@ -80,7 +78,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMigratorError(
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "creating migration failed: failure")
 }
 
@@ -105,7 +102,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMissingPath() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
@@ -120,7 +116,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMissingURL() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(errors.Cause(err), "please specify url")
 }
 
@@ -138,7 +133,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMigratorError() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "migrating up failed: failure")
 }
 
@@ -154,7 +148,6 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfInvalidArgument() 
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(errors.Cause(err), "parsing <n> failed")
 }
 
@@ -195,7 +188,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingPath() {
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
@@ -210,7 +202,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingURL() {
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(errors.Cause(err), "please specify url")
 }
 
@@ -227,7 +218,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMigratorError() 
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "migrating down failed: failure")
 }
 
@@ -243,7 +233,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingArgumentN
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "please specify <n>")
 }
 
