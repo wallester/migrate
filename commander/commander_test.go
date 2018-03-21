@@ -233,7 +233,6 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingArgumentN
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Error(err)
 	suite.EqualError(err, "please specify <n>")
 }
 
