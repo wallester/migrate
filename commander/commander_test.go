@@ -49,7 +49,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingArgumen
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(err, "please specify migration name")
 }
 
@@ -63,7 +62,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMissingFlag() 
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(err, "please specify path")
 }
 
@@ -80,7 +78,6 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMigratorError(
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(err, "creating migration failed: failure")
 }
 
@@ -97,19 +94,18 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	err := suite.commander.Create(suite.ctx)
 
 	// Assert
-	suite.Nil(err)
+	suite.NoError(err)
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingPath() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMissingPath() {
 	// Act
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingURL() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMissingURL() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	if err := suite.flagSet.Parse([]string{"--path", "testdata"}); err != nil {
@@ -120,11 +116,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMissingURL() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(errors.Cause(err), "please specify url")
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMigratorError() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMigratorError() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
@@ -138,11 +133,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfMigratorError() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(err, "migrating up failed: failure")
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfInvalidArgument() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfInvalidArgument() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
@@ -154,11 +148,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnError_InCaseOfInvalidArgument() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(errors.Cause(err), "parsing <n> failed")
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfSuccess() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
@@ -171,10 +164,10 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfSuccess() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Nil(err)
+	suite.NoError(err)
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfArgumentN() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfArgumentN() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
@@ -187,19 +180,18 @@ func (suite *CommanderTestSuite) Test_Up_ReturnNil_InCaseOfArgumentN() {
 	err := suite.commander.Up(suite.ctx)
 
 	// Assert
-	suite.Nil(err)
+	suite.NoError(err)
 }
 
-func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingPath() {
+func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingPath() {
 	// Act
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(errors.Cause(err), "please specify path")
 }
 
-func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingURL() {
+func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingURL() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	if err := suite.flagSet.Parse([]string{"--path", "testdata"}); err != nil {
@@ -210,39 +202,52 @@ func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMissingURL() {
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(errors.Cause(err), "please specify url")
 }
 
-func (suite *CommanderTestSuite) Test_Down_ReturnError_InCaseOfMigratorError() {
+func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMigratorError() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
+	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 0, 1).Return(suite.expectedErr).Once()
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 123, 1).Return(suite.expectedErr).Once()
 
 	// Act
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.NotNil(err)
 	suite.EqualError(err, "migrating down failed: failure")
 }
 
-func (suite *CommanderTestSuite) Test_Down_ReturnNil_InCaseOfSuccess() {
+func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingArgumentN() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
 	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}); err != nil {
 		suite.FailNow(err.Error())
 	}
-	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 0, 1).Return(nil).Once()
 
 	// Act
 	err := suite.commander.Down(suite.ctx)
 
 	// Assert
-	suite.Nil(err)
+	suite.EqualError(err, "please specify <n>")
+}
+
+func (suite *CommanderTestSuite) Test_Down_ReturnsNil_InCaseOfSuccess() {
+	// Arrange
+	suite.flagSet.String("path", "", "")
+	suite.flagSet.String("url", "", "")
+	if err := suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}); err != nil {
+		suite.FailNow(err.Error())
+	}
+	suite.migratorMock.On("Migrate", "testdata", "connectionurl", direction.Down, 123, 1).Return(nil).Once()
+
+	// Act
+	err := suite.commander.Down(suite.ctx)
+
+	// Assert
+	suite.NoError(err)
 }

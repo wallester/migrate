@@ -66,6 +66,10 @@ func (cmd *commander) Down(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
+	if args.steps < 1 {
+		return flag.NewRequiredFlagError("<n>")
+	}
+
 	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps, args.timeoutSeconds); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
