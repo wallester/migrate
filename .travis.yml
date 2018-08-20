@@ -5,8 +5,7 @@ go:
   - tip
 
 install:
-  - go get -u gopkg.in/alecthomas/gometalinter.v2
-  - gometalinter.v2 --install
+  - go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 
 script:
   - make install

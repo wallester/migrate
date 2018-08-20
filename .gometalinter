@@ -1,6 +1,0 @@
-{
-  "Enable": ["vet", "vetshadow", "gotype", "deadcode", "gocyclo", "golint", "varcheck", "structcheck", "maligned", "errcheck", "megacheck", "ineffassign", "interfacer", "unconvert", "goconst", "gas", "goimports", "misspell", "unparam"],
-  "Deadline": "5m",
-  "Vendor": true,
-  "Concurrency": 4
-}

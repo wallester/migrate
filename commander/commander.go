@@ -23,7 +23,9 @@ type commander struct {
 
 // New returns new instance
 func New(m migrator.Migrator) Commander {
-	return &commander{m}
+	return &commander{
+		m: m,
+	}
 }
 
 // Create creates new migration files
