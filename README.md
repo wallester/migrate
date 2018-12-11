@@ -12,7 +12,7 @@ Command line tool for PostgreSQL migrations
 ## Usage
 
 ```bash
-migrate -url postgres://user@host:port/database -path ./db/migrations create add_field_to_table
+migrate -path ./db/migrations create add_field_to_table
 migrate -url postgres://user@host:port/database -path ./db/migrations -timeout 10 up
 migrate -url postgres://user@host:port/database -path ./db/migrations -timeout 10 up 1
 migrate -url postgres://user@host:port/database -path ./db/migrations -timeout 10 down
