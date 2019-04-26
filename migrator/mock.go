@@ -11,16 +11,14 @@ type Mock struct {
 }
 
 // Migrate is a mock method
-func (m *Mock) Migrate(path string, url string, up bool, steps int, timeoutSeconds int) error {
-	args := m.Called(path, url, up, steps, timeoutSeconds)
-
+func (m *Mock) Migrate(a Args) error {
+	args := m.Called(a)
 	return args.Error(0)
 }
 
 // Create is a mock method
 func (m *Mock) Create(name string, path string) (*file.Pair, error) {
 	args := m.Called(name, path)
-
 	if args.Get(0) != nil {
 		return args.Get(0).(*file.Pair), args.Error(1)
 	}

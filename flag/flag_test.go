@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/urfave/cli"
 )
 
@@ -28,9 +29,8 @@ func Test_Get_ReturnsFlagValue_InCaseOfFlagSet(t *testing.T) {
 	// Arrange
 	set := flag.NewFlagSet("test", 0)
 	set.String("foo", "", "")
-	if err := set.Parse([]string{"--foo", "bar"}); err != nil {
-		assert.FailNow(t, err.Error())
-	}
+	require.NoError(t, set.Parse([]string{"--foo", "bar"}))
+
 	c := cli.NewContext(nil, set, nil)
 
 	// Act
@@ -50,4 +50,31 @@ func Test_Get_ReturnsEmptyString_InCaseOfFlagNotSet(t *testing.T) {
 
 	// Assert
 	assert.Empty(t, value)
+}
+
+func Test_GetBool_ReturnsTrue_InCaseOfFlagSetWithValue(t *testing.T) {
+	// Arrange
+	set := flag.NewFlagSet("test", 0)
+	set.Bool("foo", true, "")
+	require.NoError(t, set.Parse([]string{"--foo"}))
+
+	c := cli.NewContext(nil, set, nil)
+
+	// Act
+	res := GetBool(c, "foo")
+
+	// Assert
+	assert.True(t, res)
+}
+
+func Test_GetBool_ReturnsFalse_InCaseOfFlagNotSet(t *testing.T) {
+	// Arrange
+	set := flag.NewFlagSet("test", 0)
+	c := cli.NewContext(nil, set, nil)
+
+	// Act
+	res := GetBool(c, "foo")
+
+	// Assert
+	assert.False(t, res)
 }

@@ -5,7 +5,6 @@ import (
 
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
-	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
 )
@@ -54,7 +53,8 @@ func (cmd *commander) Up(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, direction.Up, args.steps, args.timeoutSeconds); err != nil {
+	args.Up = true
+	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
 
@@ -68,25 +68,19 @@ func (cmd *commander) Down(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	if args.steps < 1 {
+	if args.Steps < 1 {
 		return flag.NewRequiredFlagError("<n>")
 	}
 
-	if err := cmd.m.Migrate(args.path, args.url, direction.Down, args.steps, args.timeoutSeconds); err != nil {
+	args.Up = false
+	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
 
 	return nil
 }
 
-type migrateArguments struct {
-	path           string
-	url            string
-	timeoutSeconds int
-	steps          int
-}
-
-func parseMigrateArguments(c *cli.Context) (*migrateArguments, error) {
+func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 	path := flag.Get(c, flag.FlagPath)
 	if path == "" {
 		return nil, flag.NewRequiredFlagError(flag.FlagPath)
@@ -120,10 +114,11 @@ func parseMigrateArguments(c *cli.Context) (*migrateArguments, error) {
 		steps = n
 	}
 
-	return &migrateArguments{
-		path:           path,
-		url:            url,
-		timeoutSeconds: timeoutSeconds,
-		steps:          steps,
+	return &migrator.Args{
+		Path:           path,
+		URL:            url,
+		TimeoutSeconds: timeoutSeconds,
+		Steps:          steps,
+		NoVerify:       flag.GetBool(c, flag.FlagNoVerify),
 	}, nil
 }
