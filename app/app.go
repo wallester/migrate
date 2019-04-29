@@ -54,6 +54,7 @@ func New() *cli.App {
 		flag.Path,
 		flag.URL,
 		flag.Timeout,
+		flag.NoVerify,
 	}
 	return app
 }
