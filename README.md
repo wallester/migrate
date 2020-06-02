@@ -20,6 +20,12 @@ migrate -url postgres://user@host:port/database -path ./db/migrations -timeout 1
 migrate help # for more info
 ```
 
+## Tools
+
+Install golangci-lint with 
+
+	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+
 ## How to contribute
 
 1. Fork the repo on Github.
