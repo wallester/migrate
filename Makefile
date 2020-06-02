@@ -20,3 +20,6 @@ cov:
 	@go tool cover -html=coverage.cov -o coverage.html
 
 validations: test lint
+
+mod-vendor:
+	go mod tidy && go mod vendor
