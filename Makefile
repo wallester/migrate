@@ -1,3 +1,4 @@
+export GOFLAGS=-mod=vendor
 
 build: fmt
 	@go build
