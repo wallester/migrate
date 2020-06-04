@@ -13,5 +13,3 @@ script:
 
 env:
   - GO111MODULE=on
-
-install: true
