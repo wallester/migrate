@@ -10,3 +10,8 @@ script:
   - make install
   - make test
   - make lint
+
+env:
+  - GO111MODULE=on
+
+install: true
