@@ -1,3 +1,4 @@
+export GOFLAGS=-mod=vendor
 
 build: fmt
 	@go build
@@ -18,6 +19,7 @@ cov:
 	@go test -test.covermode=count -test.coverprofile coverage.cov
 	@go tool cover -html=coverage.cov -o coverage.html
 
-tools:
-	@echo "govendor" && go get -u github.com/kardianos/govendor
-	@echo "golangci-lint" && go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+validations: test lint
+
+mod-vendor:
+	go mod tidy && go mod vendor
