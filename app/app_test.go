@@ -27,7 +27,6 @@ func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 			assert.True(t, hasFlag("timeout", app.Flags))
 			assert.True(t, hasFlag("no-verify", app.Flags))
 		}
-
 	}
 }
 
