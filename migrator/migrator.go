@@ -42,9 +42,9 @@ var printPrefix = map[bool]string{
 type Args struct {
 	Path           string
 	URL            string
-	Up             bool
 	Steps          int
 	TimeoutSeconds int
+	Up             bool
 	NoVerify       bool
 }
 
