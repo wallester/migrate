@@ -24,7 +24,7 @@ migrate help # for more info
 
 Install golangci-lint with 
 
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
+    go get -u github.com/golangci/golangci-lint/cmd/golangci-lint github.com/securego/gosec
 
 ## How to contribute
 
