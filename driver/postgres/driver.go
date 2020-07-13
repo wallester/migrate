@@ -47,9 +47,6 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, 
 	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
-	if rows.Err() != nil {
-		return nil, rows.Err()
-	}
 
 	if err != nil {
 		return nil, errors.Annotate(err, "selecting existing migration versions failed")
@@ -68,6 +65,10 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, 
 		}
 
 		migrated[version] = exists
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
 	}
 
 	if closeErr := rows.Close(); closeErr != nil {
