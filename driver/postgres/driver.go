@@ -66,6 +66,10 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, 
 		migrated[version] = exists
 	}
 
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
 	if closeErr := rows.Close(); closeErr != nil {
 		return nil, errors.Annotate(closeErr, "closing rows failed")
 	}

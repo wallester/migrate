@@ -19,7 +19,10 @@ cov:
 	@go test -test.covermode=count -test.coverprofile coverage.cov
 	@go tool cover -html=coverage.cov -o coverage.html
 
-validations: test lint
+validations: test gosec lint
+
+gosec:
+	@gosec -quiet ./...
 
 mod-vendor:
 	go mod tidy && go mod vendor
