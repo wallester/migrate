@@ -6,6 +6,7 @@ go:
 install:
   - curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | BINARY=golangci-lint sh -s -- -b $(go env GOPATH)/bin v1.27.0
   - curl -sfL https://raw.githubusercontent.com/securego/gosec/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v2.3.0
+
 script:
   - make install
   - make test
