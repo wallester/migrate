@@ -11,6 +11,7 @@ script:
   - make install
   - make test
   - make lint
+  - make gosec
 
 env:
   - GO111MODULE=on
