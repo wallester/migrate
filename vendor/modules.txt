@@ -1,9 +1,10 @@
 # github.com/alexbrainman/sspi v0.0.0-20180613141037-e580b900e9f5
 github.com/alexbrainman/sspi
 github.com/alexbrainman/sspi/negotiate
-# github.com/cpuguy83/go-md2man/v2 v2.0.0-20190314233015-f79a8a8ca69d
+# github.com/cpuguy83/go-md2man/v2 v2.0.0
+## explicit
 github.com/cpuguy83/go-md2man/v2/md2man
-# github.com/davecgh/go-spew v1.1.0
+# github.com/davecgh/go-spew v1.1.1
 github.com/davecgh/go-spew/spew
 # github.com/hashicorp/go-uuid v1.0.2
 github.com/hashicorp/go-uuid
@@ -57,6 +58,8 @@ github.com/jcmturner/rpc/v2/ndr
 github.com/juju/errors
 # github.com/juju/testing v0.0.0-20200510222523-6c8c298c77a0
 ## explicit
+# github.com/kr/pretty v0.1.0
+## explicit
 # github.com/lib/pq v1.6.0
 ## explicit
 github.com/lib/pq
@@ -76,7 +79,8 @@ github.com/pmezard/go-difflib/difflib
 github.com/russross/blackfriday/v2
 # github.com/shurcooL/sanitized_anchor_name v1.0.0
 github.com/shurcooL/sanitized_anchor_name
-# github.com/stretchr/objx v0.1.0
+# github.com/stretchr/objx v0.2.0
+## explicit
 github.com/stretchr/objx
 # github.com/stretchr/testify v1.6.0
 ## explicit
@@ -87,12 +91,20 @@ github.com/stretchr/testify/suite
 # github.com/urfave/cli v1.22.4
 ## explicit
 github.com/urfave/cli
-# golang.org/x/crypto v0.0.0-20200311171314-f7b00557c8c4
+# golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37
+## explicit
 golang.org/x/crypto/md4
 golang.org/x/crypto/pbkdf2
-# golang.org/x/net v0.0.0-20200114155413-6afb5195e5aa
+# golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
+## explicit
 golang.org/x/net/http2/hpack
-# golang.org/x/sys v0.0.0-20200223170610-d5e6a3e2c0ae
+# golang.org/x/sys v0.0.0-20200519105757-fe76b779f299
+## explicit
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
+# gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127
+## explicit
+# gopkg.in/yaml.v2 v2.3.0
+## explicit
 # gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c
 gopkg.in/yaml.v3
