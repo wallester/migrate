@@ -157,7 +157,7 @@ type conn struct {
 	notificationHandler func(*Notification)
 
 	// GSSAPI context
-	gss Gss
+	gss GSS
 }
 
 // Handle driver-side settings in parsed connection string.
@@ -1074,9 +1074,9 @@ func isDriverSetting(key string) bool {
 		return true
 	case "binary_parameters":
 		return true
-	case "service":
+	case "krbsrvname":
 		return true
-	case "spn":
+	case "krbspn":
 		return true
 	default:
 		return false
@@ -1158,20 +1158,23 @@ func (cn *conn) auth(r *readBuf, o values) {
 			errorf("unexpected authentication response: %q", t)
 		}
 	case 7: // GSSAPI, startup
-		cli, err := NewGSS()
+		if newGss == nil {
+			errorf("kerberos error: no GSSAPI provider registered (import github.com/lib/pq/auth/kerberos if you need Kerberos support)")
+		}
+		cli, err := newGss()
 		if err != nil {
 			errorf("kerberos error: %s", err.Error())
 		}
 
 		var token []byte
 
-		if spn, ok := o["spn"]; ok {
+		if spn, ok := o["krbspn"]; ok {
 			// Use the supplied SPN if provided..
 			token, err = cli.GetInitTokenFromSpn(spn)
 		} else {
 			// Allow the kerberos service name to be overridden
 			service := "postgres"
-			if val, ok := o["service"]; ok {
+			if val, ok := o["krbsrvname"]; ok {
 				service = val
 			}
 
