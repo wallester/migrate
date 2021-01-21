@@ -143,7 +143,7 @@ func chooseMigrations(files []file.File, alreadyMigrated version.Versions, up bo
 }
 
 func (m *migrator) Create(name string, path string) (*file.Pair, error) {
-	name = strings.Replace(name, " ", "_", -1)
+	name = strings.ReplaceAll(name, " ", "_")
 	version := time.Now().Unix()
 
 	up := file.File{
