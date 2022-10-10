@@ -1,7 +1,7 @@
 package file
 
 import (
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"sort"
 	"strconv"
@@ -20,7 +20,7 @@ type File struct {
 
 // Create creates a new file in the given path
 func (f File) Create(path string) error {
-	if err := ioutil.WriteFile(filepath.Join(path, f.Base), nil, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(path, f.Base), nil, 0600); err != nil {
 		return errors.Annotate(err, "writing migration file failed")
 	}
 
@@ -81,7 +81,7 @@ func ListFiles(path string, up bool) ([]File, error) {
 			return nil, errors.Annotatef(err, "getting version of %s migration failed", base)
 		}
 
-		b, err := ioutil.ReadFile(filepath.Clean(file))
+		b, err := os.ReadFile(filepath.Clean(file))
 		if err != nil {
 			return nil, errors.Annotate(err, "reading migration file failed")
 		}

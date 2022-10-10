@@ -14,9 +14,6 @@ linters-settings:
   gocyclo:
     # minimal code complexity to report, 30 by default (but we recommend 10-20)
     min-complexity: 10
-  maligned:
-    # print struct with more effective memory layout or not, false by default
-    suggest-new: true
 
 linters:
   # do not use `enable-all`: it's deprecated and will be removed soon.
@@ -25,7 +22,6 @@ linters:
   # use 'gosec ./...' command
   enable:
     - asciicheck
-    - deadcode
     - depguard
     - dogsled
     - errcheck
@@ -34,25 +30,20 @@ linters:
     - gocritic
     - gofmt
     - goimports
-    - golint
+    - revive
     - goprintffuncname
     - gosimple
     - govet
     - ineffassign
-    - interfacer
-    - maligned
     - misspell
     - nakedret
     - nestif
-    - rowserrcheck
     - staticcheck
-    - structcheck
     - stylecheck
     - typecheck
     - unconvert
     - unparam
     - unused
-    - varcheck
     - whitespace
 
 issues:
