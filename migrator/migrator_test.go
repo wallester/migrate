@@ -311,6 +311,7 @@ func (suite *MigratorTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 
 func remove(filename string) {
 	if err := os.Remove(filename); err != nil {
+		//nolint:forbidigo
 		fmt.Println("removing file failed", err)
 	}
 }

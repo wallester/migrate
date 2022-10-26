@@ -20,7 +20,7 @@ type File struct {
 
 // Create creates a new file in the given path
 func (f File) Create(path string) error {
-	if err := os.WriteFile(filepath.Join(path, f.Base), nil, 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(path, f.Base), nil, 0o600); err != nil {
 		return errors.Annotate(err, "writing migration file failed")
 	}
 
@@ -72,7 +72,7 @@ func ListFiles(path string, up bool) ([]File, error) {
 		return nil, errors.Annotate(err, "getting migration files failed")
 	}
 
-	var migrations []File
+	migrations := make([]File, 0, len(files))
 	for _, file := range files {
 		base := filepath.Base(file)
 

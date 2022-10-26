@@ -17,5 +17,6 @@ func New() Printer {
 type printer struct{}
 
 func (p *printer) Println(a ...interface{}) {
+	//nolint:forbidigo
 	fmt.Println(a...)
 }

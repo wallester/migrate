@@ -116,7 +116,7 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 func chooseMigrations(files []file.File, alreadyMigrated version.Versions, up bool, steps int, noVerify bool) ([]file.File, error) {
 	maxMigratedVersion := alreadyMigrated.Max()
 
-	var needsMigration []file.File
+	needsMigration := make([]file.File, 0, len(files))
 	for _, f := range files {
 		_, isMigrated := alreadyMigrated[f.Version]
 

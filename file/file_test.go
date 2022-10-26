@@ -28,6 +28,7 @@ func Test_ListFiles_ReturnsUpMigrationFiles_InCaseOfSuccess(t *testing.T) {
 		assert.NotEmpty(t, files[2].SQL)
 	}
 }
+
 func Test_ListFiles_ReturnsDownMigrationFiles_InCaseOfSuccess(t *testing.T) {
 	// Act
 	files, err := ListFiles(filepath.Join("..", "testdata"), direction.Down)
