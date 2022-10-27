@@ -1,4 +1,3 @@
-# options for analysis running
 run:
   # default concurrency is an available CPU number
   concurrency: 4
@@ -21,16 +20,26 @@ linters:
   # gosec linter is disabled until we find out how to get it work properly with golangci-lint
   # use 'gosec ./...' command
   enable:
+    - asasalint
     - asciicheck
+    - bidichk
+    - bodyclose
     - depguard
     - dogsled
+    - durationcheck
     - errcheck
+    - errchkjson
+    - execinquery
+    - exportloopref
+    - forbidigo
+    - gci
     - gocognit
     - goconst
     - gocritic
+    - godox
     - gofmt
+    - gofumpt
     - goimports
-    - revive
     - goprintffuncname
     - gosimple
     - govet
@@ -38,12 +47,20 @@ linters:
     - misspell
     - nakedret
     - nestif
+    - nilerr
+    - nolintlint
+    - nonamedreturns
+    - prealloc
+    - predeclared
+    - revive
     - staticcheck
     - stylecheck
+    - tenv
     - typecheck
     - unconvert
     - unparam
     - unused
+    - usestdlibvars
     - whitespace
 
 issues:

@@ -12,7 +12,7 @@ type Recorder struct {
 
 // Println remembers the printed values
 func (r *Recorder) Println(a ...interface{}) {
-	var line []string
+	line := make([]string, 0, len(a))
 	for _, v := range a {
 		line = append(line, fmt.Sprintf("%v", v))
 	}
