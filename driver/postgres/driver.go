@@ -12,17 +12,19 @@ import (
 	"github.com/wallester/migrate/version"
 )
 
-type postgres struct {
+type Postgres struct {
 	connection *sql.DB
 }
 
+var _ driver.IDriver = (*Postgres)(nil)
+
 // New returns new instance
-func New() driver.Driver {
-	return &postgres{}
+func New() *Postgres {
+	return &Postgres{}
 }
 
 // Open opens database connection
-func (db *postgres) Open(url string) error {
+func (db *Postgres) Open(url string) error {
 	connection, err := sql.Open("postgres", url)
 	if err != nil {
 		return errors.Annotate(err, "connecting to database failed")
@@ -34,7 +36,7 @@ func (db *postgres) Open(url string) error {
 }
 
 // Close closes database connection
-func (db *postgres) Close() error {
+func (db *Postgres) Close() error {
 	if err := db.connection.Close(); err != nil {
 		return errors.Annotate(err, "closing database connection failed")
 	}
@@ -43,7 +45,7 @@ func (db *postgres) Close() error {
 }
 
 // SelectAllMigrations selects existing migrations
-func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, error) {
+func (db *Postgres) SelectAllMigrations(ctx context.Context) (version.Versions, error) {
 	rows, err := db.connection.QueryContext(ctx, `
 		SELECT version FROM schema_migrations
 	`)
@@ -54,31 +56,31 @@ func (db *postgres) SelectAllMigrations(ctx context.Context) (version.Versions, 
 	var exists struct{}
 	migrated := make(version.Versions)
 	for rows.Next() {
-		var version int64
-		if err := rows.Scan(&version); err != nil {
-			if closeErr := rows.Close(); closeErr != nil {
-				return nil, errors.Annotate(closeErr, "closing rows failed")
+		var v int64
+		if err := rows.Scan(&v); err != nil {
+			if err := rows.Close(); err != nil {
+				return nil, errors.Annotate(err, "closing rows failed")
 			}
 
 			return nil, errors.Annotate(err, "scanning version failed")
 		}
 
-		migrated[version] = exists
+		migrated[v] = exists
 	}
 
 	if rows.Err() != nil {
 		return nil, rows.Err()
 	}
 
-	if closeErr := rows.Close(); closeErr != nil {
-		return nil, errors.Annotate(closeErr, "closing rows failed")
+	if err := rows.Close(); err != nil {
+		return nil, errors.Annotate(err, "closing rows failed")
 	}
 
 	return migrated, nil
 }
 
 // CreateMigrationsTable creates migrations table if it does not exist yet
-func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
+func (db *Postgres) CreateMigrationsTable(ctx context.Context) error {
 	if _, err := db.connection.ExecContext(ctx, `
 		CREATE TABLE IF NOT EXISTS schema_migrations(
 			version bigint not null primary key,
@@ -115,13 +117,7 @@ func (db *postgres) CreateMigrationsTable(ctx context.Context) error {
 	return nil
 }
 
-var applyMigrationSQL = map[bool]string{
-	direction.Up:   "INSERT INTO schema_migrations(version, applied_at) VALUES($1, NOW() at time zone 'utc')",
-	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
-}
-
-// ApplyMigrations applies migrations to database
-func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up bool) error {
+func (db *Postgres) Migrate(ctx context.Context, f file.File, up bool) error {
 	tx, err := db.connection.Begin()
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
@@ -135,14 +131,12 @@ func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up b
 		return reasonErr
 	}
 
-	for _, file := range files {
-		if _, err := tx.ExecContext(ctx, file.SQL); err != nil {
-			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
-		}
+	if _, err := tx.ExecContext(ctx, f.SQL); err != nil {
+		return rollback(errors.Annotatef(err, "executing %s migration failed", f.Base))
+	}
 
-		if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], file.Version); err != nil {
-			return rollback(errors.Annotatef(err, "executing %s migration failed", file.Base))
-		}
+	if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], f.Version); err != nil {
+		return rollback(errors.Annotatef(err, "executing %s migration failed", f.Base))
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -150,4 +144,11 @@ func (db *postgres) ApplyMigrations(ctx context.Context, files []file.File, up b
 	}
 
 	return nil
+}
+
+// private
+
+var applyMigrationSQL = map[bool]string{
+	direction.Up:   "INSERT INTO schema_migrations(version, applied_at) VALUES($1, NOW() at time zone 'utc')",
+	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
 }

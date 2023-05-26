@@ -5,18 +5,20 @@ import (
 )
 
 // Printer prints
-type Printer interface {
+type IPrinter interface {
 	Println(a ...interface{})
 }
 
+type Printer struct{}
+
+var _ IPrinter = (*Printer)(nil)
+
 // New returns new instance
-func New() Printer {
-	return &printer{}
+func New() *Printer {
+	return &Printer{}
 }
 
-type printer struct{}
-
-func (p *printer) Println(a ...interface{}) {
+func (p *Printer) Println(a ...interface{}) {
 	//nolint:forbidigo
 	fmt.Println(a...)
 }

@@ -15,41 +15,29 @@ import (
 	"github.com/wallester/migrate/version"
 )
 
-// Migrator represents possible migration actions
-type Migrator interface {
+// IMigrator represents possible migration actions
+type IMigrator interface {
 	Migrate(args Args) error
-	Create(name string, path string) (*file.Pair, error)
+	Create(name, path string) (*file.Pair, error)
 }
 
-type migrator struct {
-	db     driver.Driver
-	output printer.Printer
+type Migrator struct {
+	db     driver.IDriver
+	output printer.IPrinter
 }
+
+var _ IMigrator = (*Migrator)(nil)
 
 // New returns new instance
-func New(db driver.Driver, output printer.Printer) Migrator {
-	return &migrator{
+func New(db driver.IDriver, output printer.IPrinter) *Migrator {
+	return &Migrator{
 		db:     db,
 		output: output,
 	}
 }
 
-var printPrefix = map[bool]string{
-	direction.Up:   ansi.Green + ">" + ansi.Reset,
-	direction.Down: ansi.Red + "<" + ansi.Reset,
-}
-
-type Args struct {
-	Path           string
-	URL            string
-	Steps          int
-	TimeoutSeconds int
-	Up             bool
-	NoVerify       bool
-}
-
 // Migrate migrates up or down
-func (m *migrator) Migrate(args Args) error {
+func (m *Migrator) Migrate(args Args) error {
 	started := time.Now()
 
 	files, err := file.ListFiles(args.Path, args.Up)
@@ -57,37 +45,71 @@ func (m *migrator) Migrate(args Args) error {
 		return errors.Annotate(err, "listing migration files failed")
 	}
 
-	err = m.db.Open(args.URL)
-	if err != nil {
+	if err := m.db.Open(args.URL); err != nil {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
-	migratedFiles, err := m.applyMigrations(files, args.Up, args.Steps, args.TimeoutSeconds, args.NoVerify)
-	if err != nil {
-		if closeErr := m.db.Close(); closeErr != nil {
-			return errors.Annotate(closeErr, "closing database connection failed")
+	defer func() {
+		if err := m.db.Close(); err != nil {
+			m.output.Println(errors.Annotate(err, "closing database connection failed").Error())
 		}
+	}()
 
+	migratedFiles, err := m.applyMigrations(files, args)
+	if err != nil {
 		return errors.Annotate(err, "migrating failed")
 	}
 
-	for _, file := range migratedFiles {
-		m.output.Println(printPrefix[args.Up], file.Base)
+	for _, f := range migratedFiles {
+		m.output.Println(printPrefix[args.Up], f.Base)
 	}
 
 	m.output.Println("")
 	spent := time.Since(started).Seconds()
 	m.output.Println(fmt.Sprintf("%.4f", spent), "seconds")
 
-	if closeErr := m.db.Close(); closeErr != nil {
-		return errors.Annotate(closeErr, "closing database connection failed")
-	}
-
 	return nil
 }
 
-func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeoutSeconds int, noVerify bool) ([]file.File, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(timeoutSeconds)*time.Second)
+func (m *Migrator) Create(name, path string) (*file.Pair, error) {
+	name = strings.ReplaceAll(name, " ", "_")
+	v := time.Now().Unix()
+
+	up := file.File{
+		Version: v,
+		Base:    fmt.Sprintf("%d_%s.up.sql", v, name),
+	}
+	if err := up.Create(path); err != nil {
+		return nil, errors.Annotate(err, "writing up migration file failed")
+	}
+
+	down := file.File{
+		Version: v,
+		Base:    fmt.Sprintf("%d_%s.down.sql", v, name),
+	}
+	if err := down.Create(path); err != nil {
+		return nil, errors.Annotate(err, "writing down migration file failed")
+	}
+
+	m.output.Println("Version", v, "migration files created in", path)
+	m.output.Println(up.Base)
+	m.output.Println(down.Base)
+
+	return &file.Pair{
+		Up:   up,
+		Down: down,
+	}, nil
+}
+
+// private
+
+var printPrefix = map[bool]string{
+	direction.Up:   ansi.Green + ">" + ansi.Reset,
+	direction.Down: ansi.Red + "<" + ansi.Reset,
+}
+
+func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(args.TimeoutSeconds)*time.Second)
 	defer cancel()
 
 	if err := m.db.CreateMigrationsTable(ctx); err != nil {
@@ -99,75 +121,49 @@ func (m *migrator) applyMigrations(files []file.File, up bool, steps int, timeou
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration, err := chooseMigrations(files, alreadyMigrated, up, steps, noVerify)
+	needsMigration, err := chooseMigrations(files, alreadyMigrated, args)
 	if err != nil {
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
-	if len(needsMigration) > 0 {
-		if err := m.db.ApplyMigrations(ctx, needsMigration, up); err != nil {
-			return nil, errors.Annotate(err, "applying migrations failed")
+	if len(needsMigration) == 0 {
+		return nil, nil
+	}
+
+	for _, f := range needsMigration {
+		if err := m.db.Migrate(ctx, f, args.Up); err != nil {
+			return nil, errors.Annotatef(err, "applying migration failed: %s", f.Base)
 		}
 	}
 
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated version.Versions, up bool, steps int, noVerify bool) ([]file.File, error) {
+func chooseMigrations(files []file.File, alreadyMigrated version.Versions, args Args) ([]file.File, error) {
 	maxMigratedVersion := alreadyMigrated.Max()
 
 	needsMigration := make([]file.File, 0, len(files))
 	for _, f := range files {
 		_, isMigrated := alreadyMigrated[f.Version]
 
-		if up && isMigrated {
+		if args.Up && isMigrated {
 			continue
 		}
 
-		if !up && !isMigrated {
+		if !args.Up && !isMigrated {
 			continue
 		}
 
-		if up && maxMigratedVersion > f.Version && !noVerify {
+		if args.Up && maxMigratedVersion > f.Version && !args.NoVerify {
 			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
 		}
 
 		needsMigration = append(needsMigration, f)
 	}
 
-	if steps > 0 && len(needsMigration) >= steps {
-		needsMigration = needsMigration[:steps]
+	if args.Steps > 0 && len(needsMigration) >= args.Steps {
+		needsMigration = needsMigration[:args.Steps]
 	}
 
 	return needsMigration, nil
-}
-
-func (m *migrator) Create(name string, path string) (*file.Pair, error) {
-	name = strings.ReplaceAll(name, " ", "_")
-	version := time.Now().Unix()
-
-	up := file.File{
-		Version: version,
-		Base:    fmt.Sprintf("%d_%s.up.sql", version, name),
-	}
-	if err := up.Create(path); err != nil {
-		return nil, errors.Annotate(err, "writing up migration file failed")
-	}
-
-	down := file.File{
-		Version: version,
-		Base:    fmt.Sprintf("%d_%s.down.sql", version, name),
-	}
-	if err := down.Create(path); err != nil {
-		return nil, errors.Annotate(err, "writing down migration file failed")
-	}
-
-	m.output.Println("Version", version, "migration files created in", path)
-	m.output.Println(up.Base)
-	m.output.Println(down.Base)
-
-	return &file.Pair{
-		Up:   up,
-		Down: down,
-	}, nil
 }

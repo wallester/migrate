@@ -14,7 +14,7 @@ func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 	// Assert
 	if assert.NotNil(t, app) {
 		assert.Equal(t, "migrate", app.Name)
-		assert.Equal(t, "Command line tool for PostgreSQL migrations", app.Usage)
+		assert.Equal(t, "Command line tool for Postgres migrations", app.Usage)
 		if assert.NotNil(t, app.Commands) {
 			assert.True(t, hasCommand("create", app.Commands))
 			assert.True(t, hasCommand("up", app.Commands))
@@ -30,7 +30,7 @@ func Test_New_ReturnsInstance_InCaseOfSuccess(t *testing.T) {
 	}
 }
 
-// private methods
+// private
 
 func hasCommand(name string, commands []cli.Command) bool {
 	for _, command := range commands {

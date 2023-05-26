@@ -8,10 +8,10 @@ import (
 )
 
 // Driver represents database driver
-type Driver interface {
+type IDriver interface {
 	Open(url string) error
 	CreateMigrationsTable(ctx context.Context) error
 	SelectAllMigrations(ctx context.Context) (version.Versions, error)
-	ApplyMigrations(ctx context.Context, files []file.File, up bool) error
+	Migrate(ctx context.Context, f file.File, up bool) error
 	Close() error
 }

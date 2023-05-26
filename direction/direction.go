@@ -1,8 +1,6 @@
 package direction
 
 const (
-	// Up represents up direction
-	Up = true
-	// Down represents down direction
+	Up   = true
 	Down = false
 )
