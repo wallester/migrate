@@ -19,7 +19,7 @@ func New() *cli.App {
 	app := cli.NewApp()
 	app.Name = "migrate"
 	app.Usage = "Command line tool for Postgres migrations"
-	app.Version = "1.0.1"
+	app.Version = "1.0.2"
 	app.Commands = []cli.Command{
 		{
 			Name:      "create",

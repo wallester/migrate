@@ -6,7 +6,7 @@ Command line tool for PostgreSQL migrations
 
 ## Features
 
-* Runs migrations in transactions
+* Runs migrations in transactions (one transaction per one migration file).
 * Stores migration version details in auto-generated table ``schema_migrations``.
 
 ## Usage
