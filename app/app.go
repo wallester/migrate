@@ -11,12 +11,15 @@ import (
 
 // New returns new cli.App instance
 func New() *cli.App {
-	cmd := commander.New(migrator.New(postgres.New(), printer.New()))
+	p := printer.New()
+	d := postgres.New()
+	m := migrator.New(d, p)
+	cmd := commander.New(m)
 
 	app := cli.NewApp()
 	app.Name = "migrate"
-	app.Usage = "Command line tool for PostgreSQL migrations"
-	app.Version = "1.0.1"
+	app.Usage = "Command line tool for Postgres migrations"
+	app.Version = "1.0.2"
 	app.Commands = []cli.Command{
 		{
 			Name:      "create",
@@ -24,7 +27,7 @@ func New() *cli.App {
 			ArgsUsage: "<name>",
 			Action:    cmd.Create,
 			Flags: []cli.Flag{
-				flag.Path,
+				flag.Flags[flag.Path],
 			},
 		},
 		{
@@ -33,9 +36,9 @@ func New() *cli.App {
 			Action:    cmd.Up,
 			ArgsUsage: "<n>",
 			Flags: []cli.Flag{
-				flag.Path,
-				flag.URL,
-				flag.Timeout,
+				flag.Flags[flag.Path],
+				flag.Flags[flag.URL],
+				flag.Flags[flag.Timeout],
 			},
 		},
 		{
@@ -44,17 +47,19 @@ func New() *cli.App {
 			Action:    cmd.Down,
 			ArgsUsage: "<n>",
 			Flags: []cli.Flag{
-				flag.Path,
-				flag.URL,
-				flag.Timeout,
+				flag.Flags[flag.Path],
+				flag.Flags[flag.URL],
+				flag.Flags[flag.Timeout],
 			},
 		},
 	}
+
 	app.Flags = []cli.Flag{
-		flag.Path,
-		flag.URL,
-		flag.Timeout,
-		flag.NoVerify,
+		flag.Flags[flag.Path],
+		flag.Flags[flag.URL],
+		flag.Flags[flag.Timeout],
+		flag.Flags[flag.NoVerify],
 	}
+
 	return app
 }

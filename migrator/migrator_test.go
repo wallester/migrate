@@ -20,7 +20,7 @@ type MigratorTestSuite struct {
 	suite.Suite
 	driverMock  *driver.Mock
 	output      *printer.Recorder
-	instance    Migrator
+	instance    *Migrator
 	expectedErr error
 }
 
@@ -165,7 +165,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(suite.expectedErr).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], true).Return(suite.expectedErr).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
@@ -204,7 +204,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(nil).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], true).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
@@ -271,7 +271,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Down).Return(nil).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], false).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
@@ -331,7 +331,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(nil).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], true).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
@@ -371,7 +371,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Down).Return(nil).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], false).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
@@ -443,7 +443,7 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNoError_InCaseOfUpMigrationO
 	suite.driverMock.On("Open", "connectionurl").Return(nil).Once()
 	suite.driverMock.On("CreateMigrationsTable", mock.AnythingOfType("*context.timerCtx")).Return(nil).Once()
 	suite.driverMock.On("SelectAllMigrations", mock.AnythingOfType("*context.timerCtx")).Return(migrations, nil).Once()
-	suite.driverMock.On("ApplyMigrations", mock.AnythingOfType("*context.timerCtx"), needsMigration, direction.Up).Return(nil).Once()
+	suite.driverMock.On("Migrate", mock.AnythingOfType("*context.timerCtx"), needsMigration[0], true).Return(nil).Once()
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{

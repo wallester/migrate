@@ -1,12 +1,11 @@
 # migrate
-[![Travis](https://travis-ci.org/wallester/migrate.svg?branch=master)](https://travis-ci.org/wallester/migrate)
 [![Go Report Card](https://goreportcard.com/badge/github.com/wallester/migrate)](https://goreportcard.com/report/github.com/wallester/migrate)
 
 Command line tool for PostgreSQL migrations 
 
 ## Features
 
-* Runs migrations in transactions
+* Runs migrations in transactions (one transaction per one migration file).
 * Stores migration version details in auto-generated table ``schema_migrations``.
 
 ## Usage

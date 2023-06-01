@@ -14,7 +14,7 @@ import (
 type CommanderTestSuite struct {
 	suite.Suite
 	migratorMock *migrator.Mock
-	commander    Commander
+	commander    ICommander
 	expectedErr  error
 	flagSet      *flag.FlagSet
 	ctx          *cli.Context

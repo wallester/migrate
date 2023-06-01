@@ -6,45 +6,38 @@ import (
 )
 
 const (
-	// FlagURL represents database URL.
-	FlagURL = "url"
-	// FlagPath represents migrations path.
-	FlagPath = "path"
-	// FlagTimeout represents execution timeout in seconds.
-	FlagTimeout = "timeout"
-	// FlagNoVerify skips verification of already migrated older migrations.
-	FlagNoVerify = "no-verify"
+	// URL represents database URL.
+	URL = "url"
+	// Path represents migrations path.
+	Path = "path"
+	// Timeout represents execution timeout in seconds.
+	Timeout = "timeout"
+	// NoVerify skips verification of already migrated older migrations.
+	NoVerify = "no-verify"
 )
 
-var (
-	// URL represents a cli flag.
-	URL = cli.StringFlag{
-		Name:   FlagURL,
+var Flags = map[string]cli.Flag{
+	URL: cli.StringFlag{
+		Name:   URL,
 		Usage:  "database URL, for example postgres://user@host:port/database",
 		EnvVar: "MIGRATE_URL",
-	}
-
-	// Path represents a cli flag.
-	Path = cli.StringFlag{
-		Name:   FlagPath,
+	},
+	Path: cli.StringFlag{
+		Name:   Path,
 		Usage:  "migrations folder, defaults to current working directory",
 		EnvVar: "MIGRATE_PATH",
-	}
-
-	// Timeout represents a cli flag.
-	Timeout = cli.StringFlag{
-		Name:   FlagTimeout,
+	},
+	Timeout: cli.StringFlag{
+		Name:   Timeout,
 		Usage:  "execution timeout in seconds, defaults to 1 second",
 		EnvVar: "MIGRATE_TIMEOUT",
-	}
-
-	// NoVerify represents a cli flag.
-	NoVerify = cli.BoolFlag{
-		Name:   FlagNoVerify,
+	},
+	NoVerify: cli.BoolFlag{
+		Name:   NoVerify,
 		Usage:  "skip verification of already migrated older migrations",
 		EnvVar: "MIGRATE_NO_VERIFY",
-	}
-)
+	},
+}
 
 // Get returns a flag value.
 func Get(c *cli.Context, name string) string {

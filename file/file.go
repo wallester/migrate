@@ -60,11 +60,6 @@ func FindByVersion(version int64, files []File) *File {
 	return nil
 }
 
-var fileSuffix = map[bool]string{
-	direction.Up:   "up",
-	direction.Down: "down",
-}
-
 // ListFiles lists migration files on a given path
 func ListFiles(path string, up bool) ([]File, error) {
 	files, err := filepath.Glob(filepath.Join(path, "*_*."+fileSuffix[up]+".sql"))
@@ -102,6 +97,8 @@ func ListFiles(path string, up bool) ([]File, error) {
 	return migrations, nil
 }
 
+// private
+
 // version returns version of migration file
 func version(base string) (*int64, error) {
 	version, err := strconv.ParseInt(strings.Split(base, "_")[0], 10, 64)
@@ -110,4 +107,9 @@ func version(base string) (*int64, error) {
 	}
 
 	return &version, nil
+}
+
+var fileSuffix = map[bool]string{
+	direction.Up:   "up",
+	direction.Down: "down",
 }

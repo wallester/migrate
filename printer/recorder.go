@@ -10,12 +10,15 @@ type Recorder struct {
 	Output []string
 }
 
+var _ IPrinter = (*Recorder)(nil)
+
 // Println remembers the printed values
 func (r *Recorder) Println(a ...interface{}) {
 	line := make([]string, 0, len(a))
 	for _, v := range a {
 		line = append(line, fmt.Sprintf("%v", v))
 	}
+
 	r.Output = append(r.Output, strings.Join(line, " "))
 }
 

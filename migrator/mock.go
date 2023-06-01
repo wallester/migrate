@@ -10,6 +10,8 @@ type Mock struct {
 	mock.Mock
 }
 
+var _ IMigrator = (*Mock)(nil)
+
 // Migrate is a mock method
 func (m *Mock) Migrate(a Args) error {
 	args := m.Called(a)

@@ -9,34 +9,36 @@ import (
 	"github.com/wallester/migrate/migrator"
 )
 
-// Commander represents app commands
-type Commander interface {
+// ICommander represents app commands
+type ICommander interface {
 	Create(c *cli.Context) error
 	Up(c *cli.Context) error
 	Down(c *cli.Context) error
 }
 
-type commander struct {
-	m migrator.Migrator
+type Commander struct {
+	m migrator.IMigrator
 }
 
+var _ ICommander = (*Commander)(nil)
+
 // New returns new instance
-func New(m migrator.Migrator) Commander {
-	return &commander{
+func New(m migrator.IMigrator) *Commander {
+	return &Commander{
 		m: m,
 	}
 }
 
 // Create creates new migration files
-func (cmd *commander) Create(c *cli.Context) error {
+func (cmd *Commander) Create(c *cli.Context) error {
 	name := c.Args().First()
 	if name == "" {
 		return errors.New("please specify migration name")
 	}
 
-	path := flag.Get(c, flag.FlagPath)
+	path := flag.Get(c, flag.Path)
 	if path == "" {
-		return flag.NewRequiredFlagError(flag.FlagPath)
+		return flag.NewRequiredFlagError(flag.Path)
 	}
 
 	if _, err := cmd.m.Create(name, path); err != nil {
@@ -47,7 +49,7 @@ func (cmd *commander) Create(c *cli.Context) error {
 }
 
 // Up migrates up
-func (cmd *commander) Up(c *cli.Context) error {
+func (cmd *Commander) Up(c *cli.Context) error {
 	args, err := parseMigrateArguments(c)
 	if err != nil {
 		return errors.Annotate(err, "parsing parameters failed")
@@ -62,7 +64,7 @@ func (cmd *commander) Up(c *cli.Context) error {
 }
 
 // Down migrates down
-func (cmd *commander) Down(c *cli.Context) error {
+func (cmd *Commander) Down(c *cli.Context) error {
 	args, err := parseMigrateArguments(c)
 	if err != nil {
 		return errors.Annotate(err, "parsing parameters failed")
@@ -80,32 +82,30 @@ func (cmd *commander) Down(c *cli.Context) error {
 	return nil
 }
 
+// private
+
 func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
-	path := flag.Get(c, flag.FlagPath)
+	path := flag.Get(c, flag.Path)
 	if path == "" {
-		return nil, flag.NewRequiredFlagError(flag.FlagPath)
+		return nil, flag.NewRequiredFlagError(flag.Path)
 	}
 
-	url := flag.Get(c, flag.FlagURL)
+	url := flag.Get(c, flag.URL)
 	if url == "" {
-		return nil, flag.NewRequiredFlagError(flag.FlagURL)
+		return nil, flag.NewRequiredFlagError(flag.URL)
 	}
 
-	var timeoutSeconds int
-	s := flag.Get(c, flag.FlagTimeout)
-	if s == "" {
-		timeoutSeconds = 1
-	} else {
+	timeoutSeconds := 1
+	if s := flag.Get(c, flag.Timeout); s != "" {
 		var err error
 		timeoutSeconds, err = strconv.Atoi(s)
 		if err != nil {
-			return nil, flag.NewWrongFormatFlagError(flag.FlagTimeout)
+			return nil, flag.NewWrongFormatFlagError(flag.Timeout)
 		}
 	}
 
 	var steps int
-	s = c.Args().First()
-	if s != "" {
+	if s := c.Args().First(); s != "" {
 		n, err := strconv.Atoi(s)
 		if err != nil {
 			return nil, flag.NewWrongFormatFlagError("<n>")
@@ -114,11 +114,13 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 		steps = n
 	}
 
+	noVerify := flag.GetBool(c, flag.NoVerify)
+
 	return &migrator.Args{
 		Path:           path,
 		URL:            url,
 		TimeoutSeconds: timeoutSeconds,
 		Steps:          steps,
-		NoVerify:       flag.GetBool(c, flag.FlagNoVerify),
+		NoVerify:       noVerify,
 	}, nil
 }
