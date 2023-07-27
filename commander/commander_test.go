@@ -118,15 +118,23 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMigratorError() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	suite.flagSet.String("timeout", "", "")
-	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "--timeout", "10"}))
+	suite.flagSet.String("timeout-duration", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout-duration", "10s",
+		}),
+	)
 
 	args := migrator.Args{
-		Path:            "testdata",
-		URL:             "connectionurl",
-		Direction:       direction.Up,
-		Steps:           0,
-		TimeoutDuration: 10 * time.Second,
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Up,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(suite.expectedErr).Once()
@@ -151,18 +159,61 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfInvalidArgument() 
 	suite.EqualError(errors.Cause(err), "parsing <n> failed")
 }
 
-func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfSuccess() {
+func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfSuccessAndTimeoutDuration() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}))
+	suite.flagSet.String("timeout-duration", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout-duration", "10s",
+		}),
+	)
 
 	args := migrator.Args{
-		Path:            "testdata",
-		URL:             "connectionurl",
-		Direction:       direction.Up,
-		Steps:           0,
-		TimeoutDuration: 10 * time.Second,
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Up,
+		Steps:                       0,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
+	}
+
+	suite.migratorMock.On("Migrate", args).Return(nil).Once()
+
+	// Act
+	err := suite.commander.Up(suite.ctx)
+
+	// Assert
+	suite.NoError(err)
+}
+
+func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfSuccessAndTimeout() {
+	// Arrange
+	suite.flagSet.String("path", "", "")
+	suite.flagSet.String("url", "", "")
+	suite.flagSet.String("timeout", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout", "10",
+		}),
+	)
+
+	args := migrator.Args{
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Up,
+		Steps:                       0,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()
@@ -178,14 +229,25 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfArgumentN() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "10"}))
+	suite.flagSet.String("timeout-duration", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout-duration", "10s",
+			"10",
+		}),
+	)
 
 	args := migrator.Args{
-		Path:            "testdata",
-		URL:             "connectionurl",
-		Direction:       direction.Up,
-		Steps:           10,
-		TimeoutDuration: 10 * time.Second,
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Up,
+		Steps:                       10,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()
@@ -221,14 +283,25 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMigratorError() 
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}))
+	suite.flagSet.String("timeout-duration", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout-duration", "10s",
+			"123",
+		}),
+	)
 
 	args := migrator.Args{
-		Path:            "testdata",
-		URL:             "connectionurl",
-		Direction:       direction.Down,
-		Steps:           123,
-		TimeoutDuration: 10 * time.Second,
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Down,
+		Steps:                       123,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(suite.expectedErr).Once()
@@ -253,18 +326,63 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMissingArgumentN
 	suite.EqualError(err, "please specify <n>")
 }
 
-func (suite *CommanderTestSuite) Test_Down_ReturnsNil_InCaseOfSuccess() {
+func (suite *CommanderTestSuite) Test_Down_ReturnsNil_InCaseOfSuccessAndTimeoutDuration() {
 	// Arrange
 	suite.flagSet.String("path", "", "")
 	suite.flagSet.String("url", "", "")
-	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}))
+	suite.flagSet.String("timeout-duration", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout-duration", "10s",
+			"123",
+		}),
+	)
 
 	args := migrator.Args{
-		Path:            "testdata",
-		URL:             "connectionurl",
-		Direction:       direction.Down,
-		Steps:           123,
-		TimeoutDuration: 10 * time.Second,
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Down,
+		Steps:                       123,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
+	}
+
+	suite.migratorMock.On("Migrate", args).Return(nil).Once()
+
+	// Act
+	err := suite.commander.Down(suite.ctx)
+
+	// Assert
+	suite.NoError(err)
+}
+
+func (suite *CommanderTestSuite) Test_Down_ReturnsNil_InCaseOfSuccessAndTimeout() {
+	// Arrange
+	suite.flagSet.String("path", "", "")
+	suite.flagSet.String("url", "", "")
+	suite.flagSet.String("timeout", "", "")
+	suite.flagSet.Duration("db-conn-timeout-duration", 10*time.Second, "")
+	suite.Require().NoError(
+		suite.flagSet.Parse([]string{
+			"--path", "testdata",
+			"--url", "connectionurl",
+			"--db-conn-timeout-duration", "10s",
+			"--timeout", "10",
+			"123",
+		}),
+	)
+
+	args := migrator.Args{
+		Path:                        "testdata",
+		URL:                         "connectionurl",
+		Direction:                   direction.Down,
+		Steps:                       123,
+		TimeoutDuration:             10 * time.Second,
+		DBConnectionTimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()
