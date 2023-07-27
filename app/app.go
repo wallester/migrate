@@ -28,6 +28,7 @@ func New() *cli.App {
 			Action:    cmd.Create,
 			Flags: []cli.Flag{
 				flag.Flags[flag.Path],
+				flag.Flags[flag.Verbose],
 			},
 		},
 		{
@@ -39,6 +40,8 @@ func New() *cli.App {
 				flag.Flags[flag.Path],
 				flag.Flags[flag.URL],
 				flag.Flags[flag.Timeout],
+				flag.Flags[flag.TimeoutDuration],
+				flag.Flags[flag.Verbose],
 			},
 		},
 		{
@@ -50,6 +53,8 @@ func New() *cli.App {
 				flag.Flags[flag.Path],
 				flag.Flags[flag.URL],
 				flag.Flags[flag.Timeout],
+				flag.Flags[flag.TimeoutDuration],
+				flag.Flags[flag.Verbose],
 			},
 		},
 	}
@@ -58,7 +63,9 @@ func New() *cli.App {
 		flag.Flags[flag.Path],
 		flag.Flags[flag.URL],
 		flag.Flags[flag.Timeout],
+		flag.Flags[flag.TimeoutDuration],
 		flag.Flags[flag.NoVerify],
+		flag.Flags[flag.Verbose],
 	}
 
 	return app
