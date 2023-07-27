@@ -109,12 +109,7 @@ func (m *Migrator) Create(name, path string, verbose bool) (*file.Pair, error) {
 // private
 
 func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, error) {
-	timeoutDuration := time.Duration(args.TimeoutSeconds * 1000)
-	if timeoutDuration == 0 {
-		timeoutDuration = args.TimeoutDuration
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
+	ctx, cancel := context.WithTimeout(context.Background(), args.TimeoutDuration)
 	defer cancel()
 
 	if err := m.db.CreateMigrationsTable(ctx); err != nil {
