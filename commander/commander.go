@@ -100,25 +100,22 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 		return nil, flag.NewRequiredFlagError(flag.URL)
 	}
 
-	timeoutSeconds := 1
+	timeoutDuration := time.Second
 	if s := flag.Get(c, flag.Timeout); s != "" {
-		var err error
-		timeoutSeconds, err = strconv.Atoi(s)
+		timeoutSeconds, err := strconv.Atoi(s)
 		if err != nil {
 			return nil, flag.NewWrongFormatFlagError(flag.Timeout)
 		}
+
+		timeoutDuration = time.Duration(timeoutSeconds) * time.Second
 	}
 
-	timeoutDuration := time.Second
 	if s := flag.Get(c, flag.TimeoutDuration); s != "" {
 		var err error
 		timeoutDuration, err = time.ParseDuration(s)
 		if err != nil {
 			return nil, flag.NewWrongFormatFlagError(flag.TimeoutDuration)
 		}
-
-		// Set timeoutSecond to 0 if timeout duration is specified.
-		timeoutSeconds = 0
 	}
 
 	dbConnectionTimeoutDuration := time.Second
@@ -146,7 +143,6 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 	return &migrator.Args{
 		Path:                        path,
 		URL:                         url,
-		TimeoutSeconds:              timeoutSeconds,
 		Steps:                       steps,
 		NoVerify:                    noVerify,
 		TimeoutDuration:             timeoutDuration,
