@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/wallester/migrate/direction"
-
 	"github.com/juju/errors"
+	"github.com/mgutz/ansi"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/printer"
@@ -62,14 +62,14 @@ func (m *Migrator) Migrate(args Args) error {
 		return errors.Annotate(err, "migrating failed")
 	}
 
-	for _, f := range migratedFiles {
-		m.output.Println(args.Direction.ToANSIColoredPrefix(), f.Base)
+	if !args.Verbose {
+		for _, f := range migratedFiles {
+			m.output.Println(args.Direction.ToANSIColoredPrefix(), f.Base)
+		}
 	}
 
-	if args.Verbose {
-		spent := time.Since(started).Seconds()
-		m.output.Println(fmt.Sprintf("\n%.4f", spent), "seconds")
-	}
+	spent := time.Since(started).Seconds()
+	m.output.Println(fmt.Sprintf("%sTotal migration time:%s %.4f seconds", ansi.Green, ansi.Reset, spent))
 
 	return nil
 }
@@ -108,6 +108,8 @@ func (m *Migrator) Create(name, path string, verbose bool) (*file.Pair, error) {
 
 // private
 
+const timeFormat = "2006-01-02 15:04:05.999999999"
+
 func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), args.TimeoutDuration)
 	defer cancel()
@@ -135,8 +137,32 @@ func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, e
 	}
 
 	for _, f := range needsMigration {
+		migrationStartedAt := time.Now()
+		if args.Verbose {
+			m.output.Println(
+				fmt.Sprintf(
+					"%s Started %s at %s",
+					args.Direction.ToANSIColoredPrefix(),
+					f.Base,
+					migrationStartedAt.Format(timeFormat),
+				),
+			)
+		}
 		if err := m.db.Migrate(ctx, f, args.Direction); err != nil {
 			return nil, errors.Annotatef(err, "applying migration failed: %s", f.Base)
+		}
+
+		if args.Verbose {
+			migrationFinishedAt := time.Now()
+			m.output.Println(
+				fmt.Sprintf(
+					"%s Finished %s at %s (%0.4f seconds)",
+					args.Direction.ToANSIColoredPrefix(),
+					f.Base,
+					migrationFinishedAt.Format(timeFormat),
+					time.Since(migrationStartedAt).Seconds(),
+				),
+			)
 		}
 	}
 
@@ -164,19 +190,16 @@ func (m *Migrator) chooseMigrations(files []file.File, alreadyMigrated version.V
 		}
 
 		needsMigration = append(needsMigration, f)
-		if args.Verbose {
-			m.output.Println(fmt.Sprintf("file %s needs migration", f.Base))
-		}
 	}
 
 	totalFilesCount := len(needsMigration)
-	if args.Verbose {
-		m.output.Println(fmt.Sprintf("total files number to be migrated is %d", totalFilesCount))
+	if totalFilesCount != 0 && args.Verbose {
+		m.output.Println(fmt.Sprintf("%sTotal files to be migrated:%s %d", ansi.Yellow, ansi.Reset, totalFilesCount))
 	}
 
 	if args.Steps > 0 && totalFilesCount >= args.Steps {
 		if args.Verbose {
-			m.output.Println(fmt.Sprintf("only %d files will be migrated out of total number", args.Steps))
+			m.output.Println(fmt.Sprintf("%sFiles to be migrated:%s %d", ansi.Yellow, ansi.Reset, args.Steps))
 		}
 
 		needsMigration = needsMigration[:args.Steps]
