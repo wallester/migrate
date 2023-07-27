@@ -19,8 +19,8 @@ func (m *Mock) Migrate(a Args) error {
 }
 
 // Create is a mock method
-func (m *Mock) Create(name string, path string) (*file.Pair, error) {
-	args := m.Called(name, path)
+func (m *Mock) Create(name, path string, verbose bool) (*file.Pair, error) {
+	args := m.Called(name, path, verbose)
 	if args.Get(0) != nil {
 		return args.Get(0).(*file.Pair), args.Error(1)
 	}

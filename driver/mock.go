@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/stretchr/testify/mock"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/version"
 )
@@ -16,8 +17,8 @@ type Mock struct {
 var _ IDriver = (*Mock)(nil)
 
 // Open is a mock method
-func (m *Mock) Open(url string) error {
-	args := m.Called(url)
+func (m *Mock) Open(ctx context.Context, url string) error {
+	args := m.Called(ctx, url)
 	return args.Error(0)
 }
 
@@ -37,8 +38,8 @@ func (m *Mock) SelectAllMigrations(ctx context.Context) (version.Versions, error
 	return nil, args.Error(1)
 }
 
-func (m *Mock) Migrate(ctx context.Context, f file.File, up bool) error {
-	args := m.Called(ctx, f, up)
+func (m *Mock) Migrate(ctx context.Context, f file.File, d direction.Direction) error {
+	args := m.Called(ctx, f, d)
 	return args.Error(0)
 }
 

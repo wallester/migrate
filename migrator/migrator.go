@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/juju/errors"
-	"github.com/mgutz/ansi"
 	"github.com/wallester/migrate/direction"
+
+	"github.com/juju/errors"
 	"github.com/wallester/migrate/driver"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/printer"
@@ -18,7 +18,7 @@ import (
 // IMigrator represents possible migration actions
 type IMigrator interface {
 	Migrate(args Args) error
-	Create(name, path string) (*file.Pair, error)
+	Create(name, path string, verbose bool) (*file.Pair, error)
 }
 
 type Migrator struct {
@@ -40,12 +40,14 @@ func New(db driver.IDriver, output printer.IPrinter) *Migrator {
 func (m *Migrator) Migrate(args Args) error {
 	started := time.Now()
 
-	files, err := file.ListFiles(args.Path, args.Up)
+	files, err := file.ListFiles(args.Path, args.Direction)
 	if err != nil {
 		return errors.Annotate(err, "listing migration files failed")
 	}
 
-	if err := m.db.Open(args.URL); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), args.DBConnectionTimeoutDuration)
+	defer cancel()
+	if err := m.db.Open(ctx, args.URL); err != nil {
 		return errors.Annotate(err, "opening database connection failed")
 	}
 
@@ -61,23 +63,24 @@ func (m *Migrator) Migrate(args Args) error {
 	}
 
 	for _, f := range migratedFiles {
-		m.output.Println(printPrefix[args.Up], f.Base)
+		m.output.Println(args.Direction.ToANSIColoredPrefix(), f.Base)
 	}
 
-	m.output.Println("")
-	spent := time.Since(started).Seconds()
-	m.output.Println(fmt.Sprintf("%.4f", spent), "seconds")
+	if args.Verbose {
+		spent := time.Since(started).Seconds()
+		m.output.Println(fmt.Sprintf("\n%.4f", spent), "seconds")
+	}
 
 	return nil
 }
 
-func (m *Migrator) Create(name, path string) (*file.Pair, error) {
+func (m *Migrator) Create(name, path string, verbose bool) (*file.Pair, error) {
 	name = strings.ReplaceAll(name, " ", "_")
 	v := time.Now().Unix()
 
 	up := file.File{
 		Version: v,
-		Base:    fmt.Sprintf("%d_%s.up.sql", v, name),
+		Base:    fmt.Sprintf("%d_%s.%s.sql", v, name, direction.Up.ToString()),
 	}
 	if err := up.Create(path); err != nil {
 		return nil, errors.Annotate(err, "writing up migration file failed")
@@ -85,15 +88,17 @@ func (m *Migrator) Create(name, path string) (*file.Pair, error) {
 
 	down := file.File{
 		Version: v,
-		Base:    fmt.Sprintf("%d_%s.down.sql", v, name),
+		Base:    fmt.Sprintf("%d_%s.%s.sql", v, name, direction.Down.ToString()),
 	}
 	if err := down.Create(path); err != nil {
 		return nil, errors.Annotate(err, "writing down migration file failed")
 	}
 
-	m.output.Println("Version", v, "migration files created in", path)
-	m.output.Println(up.Base)
-	m.output.Println(down.Base)
+	if verbose {
+		m.output.Println("Version", v, "migration files created in", path)
+		m.output.Println(up.Base)
+		m.output.Println(down.Base)
+	}
 
 	return &file.Pair{
 		Up:   up,
@@ -103,13 +108,13 @@ func (m *Migrator) Create(name, path string) (*file.Pair, error) {
 
 // private
 
-var printPrefix = map[bool]string{
-	direction.Up:   ansi.Green + ">" + ansi.Reset,
-	direction.Down: ansi.Red + "<" + ansi.Reset,
-}
-
 func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(args.TimeoutSeconds)*time.Second)
+	timeoutDuration := time.Duration(args.TimeoutSeconds * 1000)
+	if timeoutDuration == 0 {
+		timeoutDuration = args.TimeoutDuration
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), timeoutDuration)
 	defer cancel()
 
 	if err := m.db.CreateMigrationsTable(ctx); err != nil {
@@ -121,17 +126,21 @@ func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, e
 		return nil, errors.Annotate(err, "selecting existing migrations failed")
 	}
 
-	needsMigration, err := chooseMigrations(files, alreadyMigrated, args)
+	needsMigration, err := m.chooseMigrations(files, alreadyMigrated, args)
 	if err != nil {
 		return nil, errors.Annotate(err, "choosing migrations failed")
 	}
 
 	if len(needsMigration) == 0 {
+		if args.Verbose {
+			m.output.Println("nothing to migrate")
+		}
+
 		return nil, nil
 	}
 
 	for _, f := range needsMigration {
-		if err := m.db.Migrate(ctx, f, args.Up); err != nil {
+		if err := m.db.Migrate(ctx, f, args.Direction); err != nil {
 			return nil, errors.Annotatef(err, "applying migration failed: %s", f.Base)
 		}
 	}
@@ -139,29 +148,42 @@ func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, e
 	return needsMigration, nil
 }
 
-func chooseMigrations(files []file.File, alreadyMigrated version.Versions, args Args) ([]file.File, error) {
+func (m *Migrator) chooseMigrations(files []file.File, alreadyMigrated version.Versions, args Args) ([]file.File, error) {
 	maxMigratedVersion := alreadyMigrated.Max()
+	boolDirection := bool(args.Direction)
 
 	needsMigration := make([]file.File, 0, len(files))
 	for _, f := range files {
 		_, isMigrated := alreadyMigrated[f.Version]
 
-		if args.Up && isMigrated {
+		if boolDirection && isMigrated {
 			continue
 		}
 
-		if !args.Up && !isMigrated {
+		if !boolDirection && !isMigrated {
 			continue
 		}
 
-		if args.Up && maxMigratedVersion > f.Version && !args.NoVerify {
+		if boolDirection && maxMigratedVersion > f.Version && !args.NoVerify {
 			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
 		}
 
 		needsMigration = append(needsMigration, f)
+		if args.Verbose {
+			m.output.Println(fmt.Sprintf("file %s needs migration", f.Base))
+		}
 	}
 
-	if args.Steps > 0 && len(needsMigration) >= args.Steps {
+	totalFilesCount := len(needsMigration)
+	if args.Verbose {
+		m.output.Println(fmt.Sprintf("total files number to be migrated is %d", totalFilesCount))
+	}
+
+	if args.Steps > 0 && totalFilesCount >= args.Steps {
+		if args.Verbose {
+			m.output.Println(fmt.Sprintf("only %d files will be migrated out of total number", args.Steps))
+		}
+
 		needsMigration = needsMigration[:args.Steps]
 	}
 

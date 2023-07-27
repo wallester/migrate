@@ -3,10 +3,12 @@ package commander
 import (
 	"flag"
 	"testing"
+	"time"
 
 	"github.com/juju/errors"
 	"github.com/stretchr/testify/suite"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/file"
 	"github.com/wallester/migrate/migrator"
 )
@@ -68,7 +70,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsError_InCaseOfMigratorError(
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "create_table_users"}))
 
 	pair := &file.Pair{}
-	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, suite.expectedErr).Once()
+	suite.migratorMock.On("Create", "create_table_users", "testdata", false).Return(pair, suite.expectedErr).Once()
 
 	// Act
 	err := suite.commander.Create(suite.ctx)
@@ -83,7 +85,7 @@ func (suite *CommanderTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "create_table_users"}))
 
 	pair := &file.Pair{}
-	suite.migratorMock.On("Create", "create_table_users", "testdata").Return(pair, nil).Once()
+	suite.migratorMock.On("Create", "create_table_users", "testdata", false).Return(pair, nil).Once()
 
 	// Act
 	err := suite.commander.Create(suite.ctx)
@@ -120,11 +122,11 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsError_InCaseOfMigratorError() {
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "--timeout", "10"}))
 
 	args := migrator.Args{
-		Path:           "testdata",
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 10,
+		Path:            "testdata",
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(suite.expectedErr).Once()
@@ -156,11 +158,11 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfSuccess() {
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl"}))
 
 	args := migrator.Args{
-		Path:           "testdata",
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            "testdata",
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()
@@ -179,11 +181,11 @@ func (suite *CommanderTestSuite) Test_Up_ReturnsNil_InCaseOfArgumentN() {
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "10"}))
 
 	args := migrator.Args{
-		Path:           "testdata",
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          10,
-		TimeoutSeconds: 1,
+		Path:            "testdata",
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           10,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()
@@ -222,11 +224,11 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsError_InCaseOfMigratorError() 
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}))
 
 	args := migrator.Args{
-		Path:           "testdata",
-		URL:            "connectionurl",
-		Up:             false,
-		Steps:          123,
-		TimeoutSeconds: 1,
+		Path:            "testdata",
+		URL:             "connectionurl",
+		Direction:       direction.Down,
+		Steps:           123,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(suite.expectedErr).Once()
@@ -258,11 +260,11 @@ func (suite *CommanderTestSuite) Test_Down_ReturnsNil_InCaseOfSuccess() {
 	suite.Require().NoError(suite.flagSet.Parse([]string{"--path", "testdata", "--url", "connectionurl", "123"}))
 
 	args := migrator.Args{
-		Path:           "testdata",
-		URL:            "connectionurl",
-		Up:             false,
-		Steps:          123,
-		TimeoutSeconds: 1,
+		Path:            "testdata",
+		URL:             "connectionurl",
+		Direction:       direction.Down,
+		Steps:           123,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	suite.migratorMock.On("Migrate", args).Return(nil).Once()

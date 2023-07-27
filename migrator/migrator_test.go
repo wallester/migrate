@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/juju/errors"
 	"github.com/stretchr/testify/mock"
@@ -64,11 +65,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoUpMigrationsTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -84,11 +85,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverOpenErro
 	suite.driverMock.On("Open", "connectionurl").Return(suite.expectedErr).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -106,11 +107,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverCreateMi
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -129,11 +130,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsErr_InCaseOfDriverSelectMigr
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -169,11 +170,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfDriverApplyMig
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -208,11 +209,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfUpMigrationsToRu
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -236,11 +237,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfNoDownMigrations
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             false,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Down,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -275,11 +276,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             false,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Down,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -293,10 +294,13 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfDownMigrationsTo
 
 func (suite *MigratorTestSuite) Test_Create_ReturnsNil_InCaseOfSuccess() {
 	// Arrange
-	const path = "."
+	const (
+		path    = "."
+		verbose = true
+	)
 
 	// Act
-	pair, err := suite.instance.Create("create_table_invoices", path)
+	pair, err := suite.instance.Create("create_table_invoices", path, verbose)
 
 	// Assert
 	suite.NoError(err)
@@ -335,11 +339,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneUpMigrationTo
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          1,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           1,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -375,11 +379,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNil_InCaseOfOneDownMigration
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             false,
-		Steps:          1,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Down,
+		Steps:           1,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -408,11 +412,11 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsError_InCaseOfUpMigrationOld
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
 	}
 
 	// Act
@@ -447,12 +451,12 @@ func (suite *MigratorTestSuite) Test_Migrate_ReturnsNoError_InCaseOfUpMigrationO
 	suite.driverMock.On("Close").Return(nil).Once()
 
 	args := Args{
-		Path:           filepath.Join("..", "testdata"),
-		URL:            "connectionurl",
-		Up:             true,
-		Steps:          0,
-		TimeoutSeconds: 1,
-		NoVerify:       true,
+		Path:            filepath.Join("..", "testdata"),
+		URL:             "connectionurl",
+		Direction:       direction.Up,
+		Steps:           0,
+		TimeoutDuration: 10 * time.Second,
+		NoVerify:        true,
 	}
 
 	// Act

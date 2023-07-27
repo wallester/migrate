@@ -2,6 +2,9 @@ package commander
 
 import (
 	"strconv"
+	"time"
+
+	"github.com/wallester/migrate/direction"
 
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
@@ -41,7 +44,9 @@ func (cmd *Commander) Create(c *cli.Context) error {
 		return flag.NewRequiredFlagError(flag.Path)
 	}
 
-	if _, err := cmd.m.Create(name, path); err != nil {
+	verbose := flag.GetBool(c, flag.Verbose)
+
+	if _, err := cmd.m.Create(name, path, verbose); err != nil {
 		return errors.Annotate(err, "creating migration failed")
 	}
 
@@ -55,7 +60,7 @@ func (cmd *Commander) Up(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	args.Up = true
+	args.Direction = direction.Up
 	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
@@ -74,7 +79,7 @@ func (cmd *Commander) Down(c *cli.Context) error {
 		return flag.NewRequiredFlagError("<n>")
 	}
 
-	args.Up = false
+	args.Direction = direction.Down
 	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
@@ -104,6 +109,27 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 		}
 	}
 
+	timeoutDuration := time.Second
+	if s := flag.Get(c, flag.TimeoutDuration); s != "" {
+		var err error
+		timeoutDuration, err = time.ParseDuration(s)
+		if err != nil {
+			return nil, flag.NewWrongFormatFlagError(flag.TimeoutDuration)
+		}
+
+		// Set timeoutSecond to 0 if timeout duration is specified.
+		timeoutSeconds = 0
+	}
+
+	dbConnectionTimeoutDuration := time.Second
+	if s := flag.Get(c, flag.DBConnectionTimeoutDuration); s != "" {
+		var err error
+		dbConnectionTimeoutDuration, err = time.ParseDuration(s)
+		if err != nil {
+			return nil, flag.NewWrongFormatFlagError(flag.DBConnectionTimeoutDuration)
+		}
+	}
+
 	var steps int
 	if s := c.Args().First(); s != "" {
 		n, err := strconv.Atoi(s)
@@ -115,12 +141,16 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 	}
 
 	noVerify := flag.GetBool(c, flag.NoVerify)
+	verbose := flag.GetBool(c, flag.Verbose)
 
 	return &migrator.Args{
-		Path:           path,
-		URL:            url,
-		TimeoutSeconds: timeoutSeconds,
-		Steps:          steps,
-		NoVerify:       noVerify,
+		Path:                        path,
+		URL:                         url,
+		TimeoutSeconds:              timeoutSeconds,
+		Steps:                       steps,
+		NoVerify:                    noVerify,
+		TimeoutDuration:             timeoutDuration,
+		DBConnectionTimeoutDuration: dbConnectionTimeoutDuration,
+		Verbose:                     verbose,
 	}, nil
 }

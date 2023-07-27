@@ -13,7 +13,8 @@ type Args struct {
 	Path                        string
 	Steps                       int
 	TimeoutDuration             time.Duration
-	TimeoutSeconds              int
-	URL                         string
-	Verbose                     bool
+	// Deprecated.  Use TimeoutDuration instead.
+	TimeoutSeconds int
+	URL            string
+	Verbose        bool
 }
