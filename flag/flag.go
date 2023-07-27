@@ -10,10 +10,18 @@ const (
 	URL = "url"
 	// Path represents migrations path.
 	Path = "path"
-	// Timeout represents execution timeout in seconds.
+	// Timeout represents execution timeout in seconds. Default value: 1s.
+	// Deprecated: use --timeout-duration instead.
 	Timeout = "timeout"
+	// TimeoutDuration represents execution timeout in duration.
+	// TimeoutDuration will override timeout setting. Default value: 1s.
+	TimeoutDuration = "timeout-duration"
+	// DBConnectionTimeoutDuration represents database connection timeout in duration. Default value: 1s.
+	DBConnectionTimeoutDuration = "db-conn-timeout-duration"
 	// NoVerify skips verification of already migrated older migrations.
 	NoVerify = "no-verify"
+	// Verbose enables verbose output.
+	Verbose = "verbose"
 )
 
 var Flags = map[string]cli.Flag{
@@ -27,6 +35,7 @@ var Flags = map[string]cli.Flag{
 		Usage:  "migrations folder, defaults to current working directory",
 		EnvVar: "MIGRATE_PATH",
 	},
+	// Deprecated, use TimeoutDuration instead.
 	Timeout: cli.StringFlag{
 		Name:   Timeout,
 		Usage:  "execution timeout in seconds, defaults to 1 second",
@@ -36,6 +45,21 @@ var Flags = map[string]cli.Flag{
 		Name:   NoVerify,
 		Usage:  "skip verification of already migrated older migrations",
 		EnvVar: "MIGRATE_NO_VERIFY",
+	},
+	Verbose: cli.BoolFlag{
+		Name:   Verbose,
+		Usage:  "enable verbose output",
+		EnvVar: "MIGRATE_VERBOSE",
+	},
+	TimeoutDuration: cli.DurationFlag{
+		Name:   TimeoutDuration,
+		Usage:  "execution timeout in duration, defaults to 1 second",
+		EnvVar: "MIGRATE_TIMEOUT_DURATION",
+	},
+	DBConnectionTimeoutDuration: cli.DurationFlag{
+		Name:   DBConnectionTimeoutDuration,
+		Usage:  "database connection timeout in duration, defaults to 1 second",
+		EnvVar: "MIGRATE_DB_CONN_TIMEOUT_DURATION",
 	},
 }
 
