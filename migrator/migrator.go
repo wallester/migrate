@@ -148,6 +148,7 @@ func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, e
 				),
 			)
 		}
+		
 		if err := m.db.Migrate(ctx, f, args.Direction); err != nil {
 			return nil, errors.Annotatef(err, "applying migration failed: %s", f.Base)
 		}
