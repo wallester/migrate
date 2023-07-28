@@ -171,21 +171,21 @@ func (m *Migrator) applyMigrations(files []file.File, args Args) ([]file.File, e
 
 func (m *Migrator) chooseMigrations(files []file.File, alreadyMigrated version.Versions, args Args) ([]file.File, error) {
 	maxMigratedVersion := alreadyMigrated.Max()
-	boolDirection := bool(args.Direction)
+	up := bool(args.Direction)
 
 	needsMigration := make([]file.File, 0, len(files))
 	for _, f := range files {
 		_, isMigrated := alreadyMigrated[f.Version]
 
-		if boolDirection && isMigrated {
+		if up && isMigrated {
 			continue
 		}
 
-		if !boolDirection && !isMigrated {
+		if !up && !isMigrated {
 			continue
 		}
 
-		if boolDirection && maxMigratedVersion > f.Version && !args.NoVerify {
+		if up && maxMigratedVersion > f.Version && !args.NoVerify {
 			return nil, fmt.Errorf("cannot migrate up %s, because it's older than already migrated version %d", f.Base, maxMigratedVersion)
 		}
 
@@ -193,7 +193,7 @@ func (m *Migrator) chooseMigrations(files []file.File, alreadyMigrated version.V
 	}
 
 	totalFilesCount := len(needsMigration)
-	if totalFilesCount != 0 && args.Verbose {
+	if totalFilesCount > 0 && args.Verbose {
 		m.output.Println(fmt.Sprintf("%sTotal files to be migrated:%s %d", ansi.Yellow, ansi.Reset, totalFilesCount))
 	}
 

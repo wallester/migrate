@@ -4,10 +4,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/wallester/migrate/direction"
-
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
 )
