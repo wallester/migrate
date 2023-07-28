@@ -24,10 +24,14 @@ func New() *Postgres {
 }
 
 // Open opens database connection
-func (db *Postgres) Open(url string) error {
+func (db *Postgres) Open(ctx context.Context, url string) error {
 	connection, err := sql.Open("postgres", url)
 	if err != nil {
 		return errors.Annotate(err, "connecting to database failed")
+	}
+
+	if err := connection.PingContext(ctx); err != nil {
+		return errors.Annotate(err, "pinging database failed")
 	}
 
 	db.connection = connection
@@ -117,8 +121,8 @@ func (db *Postgres) CreateMigrationsTable(ctx context.Context) error {
 	return nil
 }
 
-func (db *Postgres) Migrate(ctx context.Context, f file.File, up bool) error {
-	tx, err := db.connection.Begin()
+func (db *Postgres) Migrate(ctx context.Context, f file.File, d direction.Direction) error {
+	tx, err := db.connection.BeginTx(ctx, nil)
 	if err != nil {
 		return errors.Annotate(err, "starting database transaction failed")
 	}
@@ -135,7 +139,7 @@ func (db *Postgres) Migrate(ctx context.Context, f file.File, up bool) error {
 		return rollback(errors.Annotatef(err, "executing %s migration failed", f.Base))
 	}
 
-	if _, err := tx.ExecContext(ctx, applyMigrationSQL[up], f.Version); err != nil {
+	if _, err := tx.ExecContext(ctx, applyMigrationSQL[d], f.Version); err != nil {
 		return rollback(errors.Annotatef(err, "executing %s migration failed", f.Base))
 	}
 
@@ -148,7 +152,7 @@ func (db *Postgres) Migrate(ctx context.Context, f file.File, up bool) error {
 
 // private
 
-var applyMigrationSQL = map[bool]string{
+var applyMigrationSQL = map[direction.Direction]string{
 	direction.Up:   "INSERT INTO schema_migrations(version, applied_at) VALUES($1, NOW() at time zone 'utc')",
 	direction.Down: "DELETE FROM schema_migrations WHERE version = $1",
 }

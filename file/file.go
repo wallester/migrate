@@ -61,8 +61,8 @@ func FindByVersion(version int64, files []File) *File {
 }
 
 // ListFiles lists migration files on a given path
-func ListFiles(path string, up bool) ([]File, error) {
-	files, err := filepath.Glob(filepath.Join(path, "*_*."+fileSuffix[up]+".sql"))
+func ListFiles(path string, d direction.Direction) ([]File, error) {
+	files, err := filepath.Glob(filepath.Join(path, "*_*."+d.ToString()+".sql"))
 	if err != nil {
 		return nil, errors.Annotate(err, "getting migration files failed")
 	}
@@ -88,7 +88,7 @@ func ListFiles(path string, up bool) ([]File, error) {
 		})
 	}
 
-	if up {
+	if d {
 		sort.Sort(ByBase(migrations))
 	} else {
 		sort.Sort(sort.Reverse(ByBase(migrations)))
@@ -107,9 +107,4 @@ func version(base string) (*int64, error) {
 	}
 
 	return &version, nil
-}
-
-var fileSuffix = map[bool]string{
-	direction.Up:   "up",
-	direction.Down: "down",
 }

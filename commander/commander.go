@@ -2,9 +2,11 @@ package commander
 
 import (
 	"strconv"
+	"time"
 
 	"github.com/juju/errors"
 	"github.com/urfave/cli"
+	"github.com/wallester/migrate/direction"
 	"github.com/wallester/migrate/flag"
 	"github.com/wallester/migrate/migrator"
 )
@@ -41,7 +43,9 @@ func (cmd *Commander) Create(c *cli.Context) error {
 		return flag.NewRequiredFlagError(flag.Path)
 	}
 
-	if _, err := cmd.m.Create(name, path); err != nil {
+	verbose := flag.GetBool(c, flag.Verbose)
+
+	if _, err := cmd.m.Create(name, path, verbose); err != nil {
 		return errors.Annotate(err, "creating migration failed")
 	}
 
@@ -55,7 +59,7 @@ func (cmd *Commander) Up(c *cli.Context) error {
 		return errors.Annotate(err, "parsing parameters failed")
 	}
 
-	args.Up = true
+	args.Direction = direction.Up
 	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating up failed")
 	}
@@ -74,7 +78,7 @@ func (cmd *Commander) Down(c *cli.Context) error {
 		return flag.NewRequiredFlagError("<n>")
 	}
 
-	args.Up = false
+	args.Direction = direction.Down
 	if err := cmd.m.Migrate(*args); err != nil {
 		return errors.Annotate(err, "migrating down failed")
 	}
@@ -95,12 +99,30 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 		return nil, flag.NewRequiredFlagError(flag.URL)
 	}
 
-	timeoutSeconds := 1
+	timeoutDuration := time.Second
 	if s := flag.Get(c, flag.Timeout); s != "" {
-		var err error
-		timeoutSeconds, err = strconv.Atoi(s)
+		timeoutSeconds, err := strconv.Atoi(s)
 		if err != nil {
 			return nil, flag.NewWrongFormatFlagError(flag.Timeout)
+		}
+
+		timeoutDuration = time.Duration(timeoutSeconds) * time.Second
+	}
+
+	if s := flag.Get(c, flag.TimeoutDuration); s != "" {
+		var err error
+		timeoutDuration, err = time.ParseDuration(s)
+		if err != nil {
+			return nil, flag.NewWrongFormatFlagError(flag.TimeoutDuration)
+		}
+	}
+
+	dbConnectionTimeoutDuration := time.Second
+	if s := flag.Get(c, flag.DBConnectionTimeoutDuration); s != "" {
+		var err error
+		dbConnectionTimeoutDuration, err = time.ParseDuration(s)
+		if err != nil {
+			return nil, flag.NewWrongFormatFlagError(flag.DBConnectionTimeoutDuration)
 		}
 	}
 
@@ -115,12 +137,15 @@ func parseMigrateArguments(c *cli.Context) (*migrator.Args, error) {
 	}
 
 	noVerify := flag.GetBool(c, flag.NoVerify)
+	verbose := flag.GetBool(c, flag.Verbose)
 
 	return &migrator.Args{
-		Path:           path,
-		URL:            url,
-		TimeoutSeconds: timeoutSeconds,
-		Steps:          steps,
-		NoVerify:       noVerify,
+		Path:                        path,
+		URL:                         url,
+		Steps:                       steps,
+		NoVerify:                    noVerify,
+		TimeoutDuration:             timeoutDuration,
+		DBConnectionTimeoutDuration: dbConnectionTimeoutDuration,
+		Verbose:                     verbose,
 	}, nil
 }
