@@ -1,0 +1,16 @@
+name: Require Checklist Helper
+on:
+  pull_request:
+    types: [opened, edited, synchronize, labeled, unlabeled]
+jobs:
+  job1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: preda-bogdan/gha-pr-check-helper@master
+        with:
+          requireChecklist: true
+          onlyCheckBody: true
+          completedLabel: "checklist completed"
+          incompleteLabel: "checklist incomplete"
+          skipLabel: "checklist-skip"
+          allowStrikeThrough: false      
