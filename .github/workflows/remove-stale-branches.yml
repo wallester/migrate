@@ -1,0 +1,22 @@
+name: Remove stale branches
+on:
+  schedule:
+    - cron: "0 0 * * *" # Everday at midnight
+  workflow_dispatch:
+
+jobs:
+  remove-stale-branches:
+    name: Remove Stale Branches
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fpicalausa/remove-stale-branches@v1.6.0
+        with:
+          dry-run: "false" # Check out the console output before setting this to false
+          exempt-authors-regex: "^dependabot"
+          exempt-protected-branches: "true"
+          exempt-branches-regex: "^(master|release|develop)$"
+          days-before-branch-stale: "120"
+          days-before-branch-delete: "7"
+          operations-per-run: "100"
+          ignore-unknown-authors: "true"
+          default-recipient: "Oxxyg33n"
